@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimaryDark">#263238</color>
+    <color name="primary_material_dark">#37474f</color>
     <color name="accent_material_dark">#efcb8b</color>
-    <color name="background_material_dark">#3f4552</color>
+    <color name="test_background">#3f4552</color>
 </resources>

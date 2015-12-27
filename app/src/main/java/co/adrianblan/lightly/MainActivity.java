@@ -1,44 +1,67 @@
 package co.adrianblan.lightly;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    static final int OVERLAY_PERMISSION_REQUEST_CODE = 1;
+    private static final int OVERLAY_PERMISSION_REQUEST_CODE = 1;
+
+    private boolean isOverlayServiceActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final FloatingActionButton serviceFab = (FloatingActionButton)  findViewById(R.id.serviceFab);
+        serviceFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                if(hasDrawOverlayPermission()) {
+
+                    if(!isOverlayServiceActive()) {
+                        startOverlayService();
+
+                        serviceFab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.primary_material_dark)));
+                        serviceFab.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_pause_white_36dp));
+                    } else {
+                        stopOverlayService();
+
+                        serviceFab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.accent_material_dark)));
+                        serviceFab.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_play_arrow_white_36dp));
+                    }
+                }
+            }
+        });
+
+        // We request permissions, if we don't have them
         if(!hasDrawOverlayPermission()) {
             requestDrawOverlayPermission();
         }
-
-        if(hasDrawOverlayPermission()) {
-            startOverlayService();
-        }
     }
 
-    private void startOverlayService() {
+    protected void startOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         startService(intent);
+        setOverlayServiceActive(true);
     }
 
-    private void stopOverlayService() {
+    protected void stopOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
+        setOverlayServiceActive(false);
     }
 
     /**
@@ -65,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
     public void requestDrawOverlayPermission() {
         if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(getApplicationContext())) {
+
+                // Send an intent, requesting the permission
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
                 startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE);
@@ -94,5 +119,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    protected boolean isOverlayServiceActive() {
+        return isOverlayServiceActive;
+    }
+
+    protected void setOverlayServiceActive(boolean overlayServiceActive) {
+        isOverlayServiceActive = overlayServiceActive;
     }
 }
