@@ -4,8 +4,14 @@ import android.app.Service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
@@ -46,13 +52,14 @@ public class OverlayService extends Service {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT);
 
-        overlayView.setBackground(getBackgroundDrawable(95));
+        overlayView.setBackgroundColor(getBackgroundColor(75));
         windowManager.addView(overlayView, layoutParams);
     }
 
-    private Drawable getBackgroundDrawable(int i) {
-        int j = 255 - (int) Math.round(255D * Math.exp(4D * ((double) i / 100D) - 4D));
-        return new ColorDrawable(Color.argb(j, 0, 0, 0));}
+    private int getBackgroundColor(int intensity) {
+        int j = 255 - (int) Math.round(255D * Math.exp(4D * ((double) intensity / 100D) - 4D));
+        return Color.argb(j, 255, 170, 84);
+    }
 
     @Override
     public void onDestroy() {

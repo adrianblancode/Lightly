@@ -4,4 +4,5 @@
     <color name="primary_material_dark">#37474f</color>
     <color name="accent_material_dark">#efcb8b</color>
     <color name="test_background">#3f4552</color>
+    <color name="background_darker">#202020</color>
 </resources>
