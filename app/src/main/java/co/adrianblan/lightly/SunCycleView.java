@@ -12,8 +12,9 @@ import android.view.View;
  */
 public class SunCycleView extends View {
 
-    private static final int PATH_ITERATIONS = 400;
-    private static final float PATH_HEIGHT_SCALE = 0.92f;
+    private static final int PATH_ITERATIONS = 100;
+    private static final float PATH_HEIGHT_SCALE = 0.90f;
+    private static final float VIEW_HEIGHT_RATIO = 0.5f;
 
     private float pathOffset;
     private float twilightDividerPosition;
@@ -41,6 +42,11 @@ public class SunCycleView extends View {
         init();
     }
 
+    /**
+     * Initializes the member variables of the class.
+     *
+     * We are using an init methods because multiple constructors need to initialize the values.
+     */
     private void init() {
 
         pathOffset = 0f;
@@ -68,11 +74,15 @@ public class SunCycleView extends View {
         twilightDividerPaint.setStrokeWidth(3);
     }
 
+    /**
+     * Calculates PATH_ITERATIONS number of discrete points on the curve of the path.
+     */
     private void calculatePath() {
 
         double tau = Math.PI * 2.0;
         double pathOffsetRadians = pathOffset * tau;
 
+        // Initial point of the path
         sunPath.moveTo(0, (float) -Math.sin(pathOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
 
         for(int i = 0; i < PATH_ITERATIONS; i++) {
@@ -80,7 +90,7 @@ public class SunCycleView extends View {
             float percent = (float) i / PATH_ITERATIONS;
             double pathY = Math.sin(percent * tau + pathOffsetRadians) * PATH_HEIGHT_SCALE;
 
-            sunPath.lineTo(percent * canvasWidth, (float) -(pathY * canvasHeight / 2));
+            sunPath.lineTo(percent * canvasWidth, (float) -pathY * canvasHeight / 2);
         }
     }
 
@@ -90,7 +100,8 @@ public class SunCycleView extends View {
         int minw = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
         int w = resolveSizeAndState(minw, widthMeasureSpec, 1);
 
-        int minh = (int) (MeasureSpec.getSize(w) * (2f / 3.14f)) + getPaddingBottom() + getPaddingTop();
+        // Scales the height according to the width
+        int minh = (int) (MeasureSpec.getSize(w) * VIEW_HEIGHT_RATIO) + getPaddingBottom() + getPaddingTop();
         int h = resolveSizeAndState(minh, heightMeasureSpec, 0);
 
         setMeasuredDimension(w, h);
@@ -112,11 +123,16 @@ public class SunCycleView extends View {
         canvas.save();
         canvas.translate(0, getMeasuredHeight() / 2F);
 
+        // Draws the twilight line
         float twilightDividerPositionScaled = twilightDividerPosition * 2f - 1f;
-
         canvas.drawLine(0, twilightDividerPositionScaled * canvasHeight, canvasWidth, twilightDividerPositionScaled * canvasHeight, twilightDividerPaint);
+
+        // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);
-        canvas.drawCircle(canvasWidth / 4.0f, (float) -Math.sin(Math.PI / 2.0) * PATH_HEIGHT_SCALE * (canvasHeight / 2.0f), 20f, sunCirclePaint);
+
+        // Draws the sun
+        double sunY = Math.sin(Math.PI / 2.0);
+        canvas.drawCircle(canvasWidth / 4.0f, (float) -sunY * PATH_HEIGHT_SCALE * canvasHeight / 2.0f, 20f, sunCirclePaint);
 
         canvas.restore();
     }

@@ -11,7 +11,8 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin">
 
-        <android.support.v7.widget.SwitchCompat
+        <Switch
+            android:id="@+id/switch_enabled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
@@ -73,15 +74,16 @@
             android:paddingRight="@dimen/activity_horizontal_margin">
 
             <TextView
-                android:id="@+id/location_status"
+                android:id="@+id/sun_cycle_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
-                android:text="Sunrise in 8 hours"
+                android:text="@string/sun_cycle_placeholder"
                 android:textSize="16dp"/>
 
             <co.adrianblan.lightly.SunCycleView
+                android:id="@+id/sun_cycle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
@@ -99,7 +101,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
                     android:layout_centerVertical="true"
-                    android:text="Svalbard, Iceland"
+                    android:text="@string/location_text_placeholder"
                     android:textSize="16dp"/>
 
                 <Button
@@ -107,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:background="@null"
-                    android:text="Change Location"
+                    android:text="@string/location_button"
                     android:textColor="@color/accent_material_dark"/>
             </RelativeLayout>
         </LinearLayout>

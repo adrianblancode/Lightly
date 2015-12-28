@@ -37,6 +37,7 @@ public class OverlayService extends Service {
 
         overlayView = new LinearLayout(this);
 
+        // We set the overlay to be non-interactive
         overlayView.setFocusable(false);
         overlayView.setClickable(false);
         overlayView.setKeepScreenOn(false);
@@ -45,17 +46,24 @@ public class OverlayService extends Service {
 
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 
+        // Parameters for a fullscreen transparent overlay
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSLUCENT);
+                PixelFormat.TRANSPARENT);
 
-        overlayView.setBackgroundColor(getBackgroundColor(75));
+        overlayView.setBackgroundColor(getBackgroundColor(85));
         windowManager.addView(overlayView, layoutParams);
     }
 
+    /**
+     * Takes the intensity as a parameter, and returns a color filter.
+     *
+     * @param intensity the intensity from 0 to 100
+     * @return the background color which is applied as a filter to the screen
+     */
     private int getBackgroundColor(int intensity) {
         int j = 255 - (int) Math.round(255D * Math.exp(4D * ((double) intensity / 100D) - 4D));
         return Color.argb(j, 255, 170, 84);

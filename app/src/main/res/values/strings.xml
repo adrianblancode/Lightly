@@ -6,6 +6,10 @@
     <string name="seekbar_day_text">Day brightness</string>
     <string name="seekbar_night_text">Night brightness</string>
 
+    <string name="sun_cycle_placeholder">Sunrise in 8 hours</string>
+    <string name="location_text_placeholder">Stockholm, Sweden</string>
+    <string name="location_button">Change Location</string>
+
     <string name="permission_denied_title">Whoops!</string>
     <string name="permission_denied_body">Lightly needs permission to draw on top of other screens
         to work.</string>

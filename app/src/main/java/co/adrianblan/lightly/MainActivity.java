@@ -1,28 +1,37 @@
 package co.adrianblan.lightly;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.SeekBar;
+import android.widget.Switch;
 
-import butterknife.BindDrawable;
 import butterknife.ButterKnife;
 import butterknife.Bind;
-import butterknife.OnClick;
+import butterknife.OnCheckedChanged;
 
 public class MainActivity extends AppCompatActivity {
 
-    @BindDrawable(R.drawable.ic_play_arrow_white_36dp) Drawable playDrawable;
-    @BindDrawable(R.drawable.ic_pause_white_36dp) Drawable pauseDrawable;
-
     private static final int OVERLAY_PERMISSION_REQUEST_CODE = 1;
-    private boolean isOverlayServiceActive = false;
+    private static final boolean isOverlayServiceActiveDefaultValue = true;
+    private static final int seekBarDayProgressDefaultValue = 80;
+    private static final int seekBarNightProgressDefaultValue = 20;
+
+    private boolean isOverlayServiceActive;
+
+    @Bind(R.id.switch_enabled)
+    Switch switchEnabled;
+    @Bind(R.id.seekbar_day)
+    SeekBar seekBarDay;
+    @Bind(R.id.seekbar_night)
+    SeekBar seekBarNight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,22 +39,71 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        // Restore data from SharedPreferences
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        isOverlayServiceActive = sharedPreferences.getBoolean("isOverlayServiceActive",
+                isOverlayServiceActiveDefaultValue);
+
+        switchEnabled.setChecked(isOverlayServiceActive);
+
+        // Update SeekBars
+        int progress = sharedPreferences.getInt("seekBarDayProgress", seekBarDayProgressDefaultValue);
+        seekBarDay.setProgress(progress);
+
+        progress = sharedPreferences.getInt("seekBarNightProgress", seekBarNightProgressDefaultValue);
+        seekBarNight.setProgress(progress);
+
+        SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean userInitiated) {
+
+                // If our day brightness is darker than night brightness, update
+                if(seekBarDay.getProgress() < seekBarNight.getProgress() && userInitiated) {
+                    seekBarDay.setProgress(progress);
+                    seekBarNight.setProgress(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        };
+
+        seekBarDay.setOnSeekBarChangeListener(seekBarListener);
+        seekBarNight.setOnSeekBarChangeListener(seekBarListener);
+
         // We request permissions, if we don't have them
         if(!hasDrawOverlayPermission()) {
             requestDrawOverlayPermission();
+        }
+
+        // If the service was active before, start it again
+        if(isOverlayServiceActive) {
+            startOverlayService();
         }
     }
 
     protected void startOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         startService(intent);
-        setOverlayServiceActive(true);
+        isOverlayServiceActive = true;
     }
 
     protected void stopOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
-        setOverlayServiceActive(false);
+        isOverlayServiceActive = false;
+    }
+
+    @OnCheckedChanged(R.id.switch_enabled)
+    public void onCheckedChanged(boolean isChecked) {
+        if(isChecked) {
+            startOverlayService();
+        } else {
+            stopOverlayService();
+        }
     }
 
     /**
@@ -105,11 +163,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    protected boolean isOverlayServiceActive() {
-        return isOverlayServiceActive;
-    }
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-    protected void setOverlayServiceActive(boolean overlayServiceActive) {
-        isOverlayServiceActive = overlayServiceActive;
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+
+        editor.putBoolean("isOverlayServiceActive", isOverlayServiceActive);
+        editor.putInt("seekBarDayProgress", seekBarDay.getProgress());
+        editor.putInt("seekBarNightProgress", seekBarNight.getProgress());
+
+        editor.commit();
     }
 }
