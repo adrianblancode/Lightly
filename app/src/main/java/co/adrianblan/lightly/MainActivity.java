@@ -1,17 +1,25 @@
 package co.adrianblan.lightly;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.SeekBar;
 import android.widget.Switch;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
@@ -58,29 +66,31 @@ public class MainActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean userInitiated) {
 
                 // If our day brightness is darker than night brightness, update
-                if(seekBarDay.getProgress() < seekBarNight.getProgress() && userInitiated) {
+                if (seekBarDay.getProgress() < seekBarNight.getProgress() && userInitiated) {
                     seekBarDay.setProgress(progress);
                     seekBarNight.setProgress(progress);
                 }
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         };
 
         seekBarDay.setOnSeekBarChangeListener(seekBarListener);
         seekBarNight.setOnSeekBarChangeListener(seekBarListener);
 
         // We request permissions, if we don't have them
-        if(!hasDrawOverlayPermission()) {
+        if (!hasDrawOverlayPermission()) {
             requestDrawOverlayPermission();
         }
 
         // If the service was active before, start it again
-        if(isOverlayServiceActive) {
+        if (isOverlayServiceActive) {
             startOverlayService();
         }
     }
@@ -99,12 +109,14 @@ public class MainActivity extends AppCompatActivity {
 
     @OnCheckedChanged(R.id.switch_enabled)
     public void onCheckedChanged(boolean isChecked) {
-        if(isChecked) {
+        if (isChecked) {
             startOverlayService();
         } else {
             stopOverlayService();
         }
     }
+
+
 
     /**
      * Returns whether we have the permission to draw overlays.
