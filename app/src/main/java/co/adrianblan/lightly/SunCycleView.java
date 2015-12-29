@@ -13,8 +13,8 @@ import android.view.View;
 public class SunCycleView extends View {
 
     private static final int PATH_ITERATIONS = 100;
-    private static final float PATH_HEIGHT_SCALE = 0.90f;
-    private static final float VIEW_HEIGHT_RATIO = 0.5f;
+    private static final float PATH_HEIGHT_SCALE = 0.85f;
+    private static final float VIEW_HEIGHT_RATIO = 0.35f;
 
     private float pathOffset;
     private float twilightDividerPosition;
@@ -54,6 +54,8 @@ public class SunCycleView extends View {
 
         sunPath = new Path();
         sunPathThin = new Path();
+
+        // TODO: fix colors properly
 
         sunPathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunPathPaint.setColor(0xFFEFCB8B);
