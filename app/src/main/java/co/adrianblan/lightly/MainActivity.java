@@ -28,16 +28,19 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isOverlayServiceActive;
     private LocationData locationData;
-    private SunCycleData sunCycleData;
+    private SunriseSunsetData sunriseSunsetData;
     private DataRequestHandler dataRequestHandler;
     private PermissionRequestHandler permissionRequestHandler;
 
     @Bind(R.id.switch_enabled)
     Switch switchEnabled;
-    @Bind(R.id.seekbar_day)
-    SeekBar seekBarDay;
-    @Bind(R.id.seekbar_night)
-    SeekBar seekBarNight;
+    @Bind(R.id.seekbar_night_color)
+    SeekBar seekBarNightColor;
+    @Bind(R.id.seekbar_night_brightness)
+    SeekBar seekBarNightBrightness;
+
+    @Bind(R.id.sun_cycle)
+    SunCycleView sunCycleView;
 
     @Bind(R.id.location_body)
     TextView locationBody;
@@ -56,39 +59,16 @@ public class MainActivity extends AppCompatActivity {
         switchEnabled.setChecked(isOverlayServiceActive);
 
         // Update SeekBars
-        int progress = sharedPreferences.getInt("seekBarDayProgress", seekBarDayProgressDefaultValue);
-        seekBarDay.setProgress(progress);
+        int progress = sharedPreferences.getInt("seekBarNightColorProgress", seekBarDayProgressDefaultValue);
+        seekBarNightColor.setProgress(progress);
 
-        progress = sharedPreferences.getInt("seekBarNightProgress", seekBarNightProgressDefaultValue);
-        seekBarNight.setProgress(progress);
-
-        SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean userInitiated) {
-
-                // If our day brightness is darker than night brightness, update
-                if (seekBarDay.getProgress() < seekBarNight.getProgress() && userInitiated) {
-                    seekBarDay.setProgress(progress);
-                    seekBarNight.setProgress(progress);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        };
-
-        seekBarDay.setOnSeekBarChangeListener(seekBarListener);
-        seekBarNight.setOnSeekBarChangeListener(seekBarListener);
+        progress = sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue);
+        seekBarNightBrightness.setProgress(progress);
 
         // Populate with dummy data
         // TODO: serialize and store
         locationData = LocationData.getDummyLocationData();
-        sunCycleData = SunCycleData.getDummySunCycleData();
+        sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
 
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
@@ -123,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Requests the LocationData of the user, and updates the view accordingly. On successful
-     * request, attempts to also request SunCycleData.
+     * request, attempts to also request SunriseSunsetData.
      * @param dataRequestHandler the locationDataHandler to use to request the location
      */
     private void requestLocationData(final DataRequestHandler dataRequestHandler) {
@@ -152,24 +132,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Request the SunCycleData using the latitude and longitude of a location.
+     * Request the SunriseSunsetData using the latitude and longitude of a location.
      */
     private void requestSunCycleData (String latitude, String longitude) {
 
-        Call<SunCycleData> sunCycleDataCall = dataRequestHandler.getSunCycleDataCall(latitude,
+        Call<SunriseSunsetData> sunriseSunsetDataCall = dataRequestHandler.getSunriseSunsetDataCall(latitude,
                 longitude);
 
         // Asynchronous callback for the request
-        sunCycleDataCall.enqueue(new Callback<SunCycleData>() {
+        sunriseSunsetDataCall.enqueue(new Callback<SunriseSunsetData>() {
 
             @Override
-            public void onResponse(Response<SunCycleData> response, Retrofit retrofit) {
-                sunCycleData = response.body();
+            public void onResponse(Response<SunriseSunsetData> response, Retrofit retrofit) {
+                sunriseSunsetData = response.body();
             }
 
             @Override
             public void onFailure(Throwable t) {
-                System.err.println("Failed to get syn cycle data" + t.toString());
+                System.err.println("Failed to get sunrise and sunset data" + t.toString());
             }
         });
     }
@@ -214,8 +194,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
 
         editor.putBoolean("isOverlayServiceActive", isOverlayServiceActive);
-        editor.putInt("seekBarDayProgress", seekBarDay.getProgress());
-        editor.putInt("seekBarNightProgress", seekBarNight.getProgress());
+        editor.putInt("seekBarNightColorProgress", seekBarNightColor.getProgress());
+        editor.putInt("seekBarNightBrightnessProgress", seekBarNightBrightness.getProgress());
 
         editor.commit();
     }

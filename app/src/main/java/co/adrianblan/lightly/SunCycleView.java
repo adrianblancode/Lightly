@@ -69,7 +69,8 @@ public class SunCycleView extends View {
 
         sunCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunCirclePaint.setColor(0xFFEFCB8B);
-        sunCirclePaint.setStrokeWidth(15);
+        sunCirclePaint.setStyle(Paint.Style.STROKE);
+        sunCirclePaint.setStrokeWidth(8);
 
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         twilightDividerPaint.setColor(0xFF505050);
@@ -134,7 +135,7 @@ public class SunCycleView extends View {
 
         // Draws the sun
         double sunY = Math.sin(Math.PI / 2.0);
-        canvas.drawCircle(canvasWidth / 4.0f, (float) -sunY * PATH_HEIGHT_SCALE * canvasHeight / 2.0f, 20f, sunCirclePaint);
+        canvas.drawCircle(canvasWidth / 4.0f, (float) -sunY * PATH_HEIGHT_SCALE * canvasHeight / 2.0f, 22f, sunCirclePaint);
 
         canvas.restore();
     }

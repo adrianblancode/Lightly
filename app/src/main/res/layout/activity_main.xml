@@ -25,39 +25,18 @@
             android:checked="true"/>
 
         <TextView
-            android:id="@+id/seekbar_day_label"
+            android:id="@+id/seekbar_night_color_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
-            android:text="@string/seekbar_day_text"
+            android:text="@string/seekbar_night_color"
             android:textSize="16dp"/>
 
         <SeekBar
-            android:id="@+id/seekbar_day"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="24dp"
-            android:paddingRight="24dp"
-            android:paddingBottom="8dp"
-            android:progress="80"
-            android:max="100"/>
-
-        <TextView
-            android:id="@+id/seekbar_night_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:text="@string/seekbar_night_text"
-            android:textSize="16dp"/>
-
-        <SeekBar
-            android:id="@+id/seekbar_night"
+            android:id="@+id/seekbar_night_color"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="24dp"
@@ -65,6 +44,28 @@
             android:paddingBottom="16dp"
             android:progress="20"
             android:max="100"/>
+
+        <TextView
+            android:id="@+id/seekbar_night_brightness_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:text="@string/seekbar_night_brightness"
+            android:textSize="16dp"/>
+
+        <SeekBar
+            android:id="@+id/seekbar_night_brightness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:paddingBottom="16dp"
+            android:progress="20"
+            android:max="100"/>
+
 
         <LinearLayout
             android:layout_width="match_parent"

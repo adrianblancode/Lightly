@@ -13,7 +13,7 @@ public class DataRequestHandler {
 
     private static OkHttpClient okHttpClient = new OkHttpClient();
 
-    /** Returns a Call for LocationData requested from http://ip-api.com/ using Retrofit */
+    /** Returns a Call for LocationData requested from ip-api.com using Retrofit */
     public Call<LocationData> getLocationDataCall() {
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -26,16 +26,16 @@ public class DataRequestHandler {
         return service.fetchLocationData();
     }
 
-    /** Returns a Call for LocationData requested from http://ip-api.com/ using Retrofit */
-    public Call<SunCycleData> getSunCycleDataCall(String latitude, String longitude) {
+    /** Returns a Call for SunriseSunsetData requested from sunrise-sunset.org using Retrofit */
+    public Call<SunriseSunsetData> getSunriseSunsetDataCall(String latitude, String longitude) {
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.sunCycleDataUrl)
+                .baseUrl(Constants.sunriseSunsetDataUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
 
-        SunCycleDataApi service = retrofit.create(SunCycleDataApi.class);
-        return service.fetchSunCycleData(latitude, longitude);
+        SunriseSunsetDataApi service = retrofit.create(SunriseSunsetDataApi.class);
+        return service.fetchSunriseSunsetData(latitude, longitude);
     }
 }
