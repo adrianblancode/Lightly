@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.seekbar_night_brightness)
     SeekBar seekBarNightBrightness;
 
+    @Bind(R.id.sun_cycle_status)
+    TextView sunCycleStatus;
     @Bind(R.id.sun_cycle)
     SunCycleView sunCycleView;
 
@@ -121,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<LocationData> response, Retrofit retrofit) {
                 locationData = response.body();
                 locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
-                System.err.println(locationData.getLat() + " " + locationData.getLon());
 
                 // As the request for location was successful, we now request for sun cycle data
                 requestSunCycleData(Double.toString(locationData.getLat()),
@@ -152,26 +153,44 @@ public class MainActivity extends AppCompatActivity {
                 SunriseSunsetDataWrapper sunriseSunsetDataWrapper = response.body();
 
                 // TODO add null check
-                sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
+                if(sunriseSunsetDataWrapper != null) {
+                    sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
 
-                if(sunriseSunsetData.getSunrise() != null &&  sunriseSunsetData.getSunset() != null) {
-                    try {
-                        Date currentDate = new Date(System.currentTimeMillis());
-                        sunCycle = new SunCycle(currentDate, sunriseSunsetData);
+                    if (sunriseSunsetData.getSunrise() != null && sunriseSunsetData.getSunset() != null) {
+                        try {
+                            Date currentDate = new Date(System.currentTimeMillis());
+                            sunCycle = new SunCycle(currentDate, sunriseSunsetData);
 
-                        // TODO fix this
-                        sunCycleView.setPathOffset(sunCycle.getOffset());
-                        sunCycleView.setSunOffset(sunCycle.getSunHorizontalPosition());
-                        sunCycleView.setTwilightDividerPosition(sunCycle.getTwilightVerticalPosition());
+                            // TODO fix this
+                            sunCycleView.setPathOffset(sunCycle.getOffset());
+                            sunCycleView.setSunOffset(sunCycle.getSunHorizontalPosition());
+                            sunCycleView.setTwilightDividerPosition(sunCycle.getTwilightVerticalPosition());
 
-                        sunCycleView.invalidate();
-                        System.err.println("Successs!");
+                            if (sunCycle.getSunHorizontalPosition() < sunCycle.getSunriseHorizontalPosition() ||
+                                    sunCycle.getSunHorizontalPosition() > sunCycle.getSunsetHorizontalPosition()) {
 
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                                int untilSunrise = (int) (((sunCycle.getSunriseHorizontalPosition() -
+                                        sunCycle.getSunHorizontalPosition() + 1.0f) % 1.0f) * 24f);
+
+                                sunCycleStatus.setText(untilSunrise + " hours until sunrise");
+                            } else {
+                                int untilSunset = (int) (((sunCycle.getSunsetHorizontalPosition() -
+                                        sunCycle.getSunHorizontalPosition() + 1.0f) % 1.0f) * 24f);
+
+                                sunCycleStatus.setText(untilSunset + " hours until sunset");
+                            }
+
+                            // Redraw the view
+                            sunCycleView.invalidate();
+
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        System.err.println("Error: sunrise and sunset are null");
                     }
                 } else {
-                    System.err.println("Error: sunrise and sunset are null");
+                    System.err.println("Error: sunrise sunset request returned error code");
                 }
             }
 

@@ -23,6 +23,8 @@ public class SunCycle {
     private float scaledTimeOffset; // Position [0, 1] that the sun cycle should be offset
     private float twilightVerticalPosition; // Position [0, 1] that the twilight is set at
     private Position sunPosition;
+    float sunriseHorizontalPosition;
+    float sunsetHorizontalPosition;
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);
@@ -52,8 +54,8 @@ public class SunCycle {
         calendar.setTime(sunrise);
 
         // Convert the dates to [0, 1] positions
-        float sunriseHorizontalPosition = getScaledTime(sunrise);
-        float sunsetHorizontalPosition = getScaledTime(sunset);
+        sunriseHorizontalPosition = getScaledTime(sunrise);
+        sunsetHorizontalPosition = getScaledTime(sunset);
 
         // The position where the sun is at it's highest
         float solarNoonHorizontalPosition = sunriseHorizontalPosition +  (sunsetHorizontalPosition - sunriseHorizontalPosition) / 2f;
@@ -100,5 +102,13 @@ public class SunCycle {
 
     public float getTwilightVerticalPosition() {
         return twilightVerticalPosition;
+    }
+
+    public float getSunriseHorizontalPosition() {
+        return sunriseHorizontalPosition;
+    }
+
+    public float getSunsetHorizontalPosition() {
+        return sunsetHorizontalPosition;
     }
 }

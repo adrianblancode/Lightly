@@ -22,6 +22,7 @@
             android:layout_alignParentBottom="true"
             android:text="Enabled"
             android:textSize="16dp"
+            android:textColor="@android:color/secondary_text_dark"
             android:checked="true"/>
 
         <TextView
@@ -41,7 +42,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="24dp"
             android:paddingRight="24dp"
-            android:paddingBottom="16dp"
+            android:paddingBottom="8dp"
             android:progress="20"
             android:max="100"/>
 

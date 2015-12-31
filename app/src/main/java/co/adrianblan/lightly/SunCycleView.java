@@ -27,7 +27,6 @@ public class SunCycleView extends View {
     private static final float VIEW_HEIGHT_RATIO = 0.35f;
 
     private static final String DEFAULT_PRIMARY_COLOR_STRING = "#009688";
-    private static final String DEFAULT_TWILIGHT_DIVIDER_COLOR_STRING = "#505050";
 
     private int accentColor;
     private Drawable sunIconDrawable;
@@ -76,8 +75,8 @@ public class SunCycleView extends View {
     private void init() {
 
 
-        sunOffset = 0.25f;
-        pathOffset = 0f;
+        sunOffset = 0.5f;
+        pathOffset = 0.25f;
         twilightDividerPosition = 0.5f;
 
         sunPath = new Path();
@@ -95,8 +94,9 @@ public class SunCycleView extends View {
         sunCirclePaint.setStrokeWidth(8);
 
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        twilightDividerPaint.setColor(Color.DKGRAY);
-        twilightDividerPaint.setStrokeWidth(3);
+        twilightDividerPaint.setColor(Color.LTGRAY);
+        sunCirclePaint.setStyle(Paint.Style.STROKE);
+        twilightDividerPaint.setStrokeWidth(2);
     }
 
     /**
@@ -107,25 +107,16 @@ public class SunCycleView extends View {
         double tau = Math.PI * 2.0;
         double pathOffsetRadians = pathOffset * tau;
 
-        // TODO fix bad
-        sunPath = new Path();
-
-        System.err.println(pathOffset + " " + twilightDividerPosition);
+        System.err.println("PO: " + pathOffset + ", TDP: " + twilightDividerPosition + ", SO: " + sunOffset);
 
         // Initial point of the path
-        sunPath.moveTo(0, (float) Math.sin(pathOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
+        sunPath.moveTo(0, (float) -Math.sin(-pathOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
 
         for(int i = 0; i <= PATH_ITERATIONS; i++) {
 
             float percent = (float) i / PATH_ITERATIONS;
 
-            /*
-            if(percent + pathOffset > 1.0f) {
-                pathOffsetRadians = -percent * tau;
-            }
-            */
-
-            double pathY = Math.sin(percent * tau + pathOffsetRadians) * PATH_HEIGHT_SCALE;
+            double pathY = -Math.sin(percent * tau - pathOffsetRadians) * PATH_HEIGHT_SCALE;
 
             sunPath.lineTo(percent * canvasWidth, (float) pathY * canvasHeight / 2);
         }
@@ -172,11 +163,11 @@ public class SunCycleView extends View {
         canvas.save();
         canvas.translate(0, getMeasuredHeight() / 2F);
 
-        // Draws the twilight line
-        float twilightDividerPositionScaled = twilightDividerPosition * 2f - 1f;
-        canvas.drawLine(0, twilightDividerPositionScaled * canvasHeight, canvasWidth, twilightDividerPositionScaled * canvasHeight, twilightDividerPaint);
+        // Scale the position from [0, 1] to [-1, 1]
+        float twilightDividerPositionScaled = -(twilightDividerPosition * 2f - 1f) * PATH_HEIGHT_SCALE;
 
-        // TODO solve drawline disappearing
+        canvas.drawLine(0, twilightDividerPositionScaled * (canvasHeight / 2f), canvasWidth,
+                twilightDividerPositionScaled * (canvasHeight / 2f), twilightDividerPaint);
 
         // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);
@@ -184,13 +175,13 @@ public class SunCycleView extends View {
         double tau = Math.PI * 2.0;
 
         // Draws the sun
-        double sunY = Math.sin(sunOffset * tau) * PATH_HEIGHT_SCALE * canvasHeight / 2.0f;
+        double sunY = -Math.sin(sunOffset * tau - pathOffset * tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
 
         if(sunIconDrawable != null) {
             Bitmap sunBitmap = ((BitmapDrawable) sunIconDrawable).getBitmap();
             ColorFilter sunIconColorFilter = new PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_IN);
             sunCirclePaint.setColorFilter(sunIconColorFilter);
-            canvas.drawBitmap(sunBitmap, (sunOffset * canvasWidth), (float) sunY, sunCirclePaint);
+            canvas.drawBitmap(sunBitmap, sunOffset * canvasWidth - (sunBitmap.getWidth() / 2f), (float) sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
         } else {
             canvas.drawCircle(sunOffset * canvasWidth, (float) sunY, 22f, sunCirclePaint);
         }
