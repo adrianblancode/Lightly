@@ -68,6 +68,7 @@
 
 
         <LinearLayout
+            xmlns:suncycleview="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -86,7 +87,9 @@
             <co.adrianblan.lightly.SunCycleView
                 android:id="@+id/sun_cycle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                suncycleview:primaryColor="@color/accent_material_dark"
+                suncycleview:sunIcon="@drawable/ic_brightness_high_white_24dp"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"

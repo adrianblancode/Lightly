@@ -8,7 +8,7 @@ public class SunriseSunsetData {
     public static SunriseSunsetData getDummySunriseSunsetData() {
         SunriseSunsetData dummySunriseSunsetData = new SunriseSunsetData();
         dummySunriseSunsetData.setSunrise("8:00:00 AM");
-        dummySunriseSunsetData.setSunrise("5:00:00 PM");
+        dummySunriseSunsetData.setSunset("5:00:00 PM");
 
         return dummySunriseSunsetData;
     }

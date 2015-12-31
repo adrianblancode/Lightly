@@ -27,7 +27,7 @@ public class DataRequestHandler {
     }
 
     /** Returns a Call for SunriseSunsetData requested from sunrise-sunset.org using Retrofit */
-    public Call<SunriseSunsetData> getSunriseSunsetDataCall(String latitude, String longitude) {
+    public Call<SunriseSunsetDataWrapper> getSunriseSunsetDataCall(String latitude, String longitude) {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.sunriseSunsetDataUrl)

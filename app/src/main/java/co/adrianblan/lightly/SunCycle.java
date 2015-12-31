@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -24,7 +25,7 @@ public class SunCycle {
     private Position sunPosition;
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm a");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         Date sunrise = simpleDateFormat.parse(sunriseSunsetData.getSunrise());
@@ -45,6 +46,8 @@ public class SunCycle {
      */
     private void initializeSunCycle(Date sunrise, Date sunset) {
 
+        sunPosition = new Position();
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(sunrise);
 
@@ -53,7 +56,7 @@ public class SunCycle {
         float sunsetHorizontalPosition = getScaledTime(sunset);
 
         // The position where the sun is at it's highest
-        float solarNoonHorizontalPosition = (sunriseHorizontalPosition + sunsetHorizontalPosition) / 2f;
+        float solarNoonHorizontalPosition = sunriseHorizontalPosition +  (sunsetHorizontalPosition - sunriseHorizontalPosition) / 2f;
 
         // If the solar noon is at 0.25f, we count that as zero offset
         scaledTimeOffset = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
@@ -85,5 +88,17 @@ public class SunCycle {
     /** Takes an angle in radians, and converts it to an abs value with bounds [0, 1] */
     private double getScaledRadian(double radian) {
         return ((radian + tau) % tau) / tau;
+    }
+
+    public float getSunHorizontalPosition() {
+        return sunPosition.x;
+    }
+
+    public float getOffset() {
+        return scaledTimeOffset;
+    }
+
+    public float getTwilightVerticalPosition() {
+        return twilightVerticalPosition;
     }
 }

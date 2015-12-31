@@ -7,5 +7,5 @@ import retrofit.http.Query;
 public interface SunriseSunsetDataApi {
 
     @GET("/json")
-    Call<SunriseSunsetData> fetchSunriseSunsetData(@Query("lat") String latitude, @Query("lng") String longitude);
+    Call<SunriseSunsetDataWrapper> fetchSunriseSunsetData(@Query("lat") String latitude, @Query("lng") String longitude);
 }

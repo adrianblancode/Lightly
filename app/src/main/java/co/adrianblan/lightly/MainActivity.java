@@ -12,6 +12,9 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.text.ParseException;
+import java.util.Date;
+
 import butterknife.ButterKnife;
 import butterknife.Bind;
 import butterknife.OnCheckedChanged;
@@ -29,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isOverlayServiceActive;
     private LocationData locationData;
     private SunriseSunsetData sunriseSunsetData;
+    private SunCycle sunCycle;
     private DataRequestHandler dataRequestHandler;
     private PermissionRequestHandler permissionRequestHandler;
 
@@ -117,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<LocationData> response, Retrofit retrofit) {
                 locationData = response.body();
                 locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
+                System.err.println(locationData.getLat() + " " + locationData.getLon());
 
                 // As the request for location was successful, we now request for sun cycle data
                 requestSunCycleData(Double.toString(locationData.getLat()),
@@ -136,20 +141,43 @@ public class MainActivity extends AppCompatActivity {
      */
     private void requestSunCycleData (String latitude, String longitude) {
 
-        Call<SunriseSunsetData> sunriseSunsetDataCall = dataRequestHandler.getSunriseSunsetDataCall(latitude,
+        Call<SunriseSunsetDataWrapper> sunriseSunsetDataWrapperCall = dataRequestHandler.getSunriseSunsetDataCall(latitude,
                 longitude);
 
         // Asynchronous callback for the request
-        sunriseSunsetDataCall.enqueue(new Callback<SunriseSunsetData>() {
+        sunriseSunsetDataWrapperCall.enqueue(new Callback<SunriseSunsetDataWrapper>() {
 
             @Override
-            public void onResponse(Response<SunriseSunsetData> response, Retrofit retrofit) {
-                sunriseSunsetData = response.body();
+            public void onResponse(Response<SunriseSunsetDataWrapper> response, Retrofit retrofit) {
+                SunriseSunsetDataWrapper sunriseSunsetDataWrapper = response.body();
+
+                // TODO add null check
+                sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
+
+                if(sunriseSunsetData.getSunrise() != null &&  sunriseSunsetData.getSunset() != null) {
+                    try {
+                        Date currentDate = new Date(System.currentTimeMillis());
+                        sunCycle = new SunCycle(currentDate, sunriseSunsetData);
+
+                        // TODO fix this
+                        sunCycleView.setPathOffset(sunCycle.getOffset());
+                        sunCycleView.setSunOffset(sunCycle.getSunHorizontalPosition());
+                        sunCycleView.setTwilightDividerPosition(sunCycle.getTwilightVerticalPosition());
+
+                        sunCycleView.invalidate();
+                        System.err.println("Successs!");
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.err.println("Error: sunrise and sunset are null");
+                }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                System.err.println("Failed to get sunrise and sunset data" + t.toString());
+                System.err.println("Error: Failed to get sunrise and sunset data" + t.toString());
             }
         });
     }
