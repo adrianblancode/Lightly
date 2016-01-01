@@ -90,7 +90,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 suncycleview:primaryColor="@color/accent_material_dark"
-                suncycleview:sunIcon="@drawable/ic_brightness_high_white_24dp"/>
+                suncycleview:sunDrawable="@drawable/ic_brightness_high_white_24dp"/>
 
             <RelativeLayout
                 android:layout_width="match_parent"

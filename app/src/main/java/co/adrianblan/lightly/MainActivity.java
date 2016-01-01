@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import butterknife.ButterKnife;
@@ -71,6 +74,14 @@ public class MainActivity extends AppCompatActivity {
 
         progress = sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue);
         seekBarNightBrightness.setProgress(progress);
+
+        // Add sun drawables that the SunCycle will draw over the cycle
+        ArrayList<Drawable> sunDrawables = new ArrayList<Drawable>();
+        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_medium_white_inverted_24dp));
+        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_high_white_24dp));
+        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_medium_white_24dp));
+        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_low_white_24dp));
+        sunCycleView.setSunDrawables(sunDrawables);
 
         // Populate with dummy data
         // TODO: serialize and store

@@ -11,8 +11,6 @@ import java.util.Locale;
  */
 public class SunCycle {
 
-    private static final double tau = Math.PI * 2.0;
-
     private float sunPositionHorizontal; // Position [0, 1] in x axis that the sun is at
     private float cycleOffsetHorizontal; // Position [0, 1] in x axis that the cycle should be offset
     private float twilightPositionVertical; // Position [0, 1] in y axis that the twilight is at
@@ -57,8 +55,8 @@ public class SunCycle {
 
         // Calculate at what scaled height the twilight is at
         twilightPositionVertical = (float) getScaledRadian(
-                (Math.sin(sunrisePosition * tau + cycleOffsetHorizontal * tau) +
-                        Math.sin(sunsetPosition * tau + cycleOffsetHorizontal * tau)) / 2);
+                (Math.sin(sunrisePosition * Constants.tau + cycleOffsetHorizontal * Constants.tau) +
+                        Math.sin(sunsetPosition * Constants.tau + cycleOffsetHorizontal * Constants.tau)) / 2);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */
@@ -80,7 +78,7 @@ public class SunCycle {
 
     /** Takes an angle in radians, and converts it to an abs value with bounds [0, 1] */
     private double getScaledRadian(double radian) {
-        return ((radian + tau) % tau) / tau;
+        return ((radian + Constants.tau) % Constants.tau) / Constants.tau;
     }
 
     public float getSunPositionHorizontal() {

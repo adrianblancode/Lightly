@@ -29,7 +29,7 @@ public class SunCycleView extends View {
     private static final String DEFAULT_PRIMARY_COLOR_STRING = "#009688";
 
     private int accentColor;
-    private ArrayList<Drawable> sunIconDrawables;
+    private ArrayList<Drawable> sunDrawables;
 
     private float sunPositionHorizontal;
     private float cycleOffsetHorizontal;
@@ -59,8 +59,8 @@ public class SunCycleView extends View {
         try {
             // TODO: get system accent color
             accentColor = typedArray.getColor(R.styleable.SunCycleView_primaryColor, Color.parseColor(DEFAULT_PRIMARY_COLOR_STRING));
-            sunIconDrawables = new ArrayList<Drawable>();
-            sunIconDrawables.add(typedArray.getDrawable(R.styleable.SunCycleView_sunIcon));
+            sunDrawables = new ArrayList<Drawable>();
+            sunDrawables.add(typedArray.getDrawable(R.styleable.SunCycleView_sunDrawable));
         } finally {
             typedArray.recycle();
         }
@@ -80,8 +80,8 @@ public class SunCycleView extends View {
         twilightPositionVertical = 0.5f;
 
         // In case we couldn't get optional drawables
-        if(sunIconDrawables == null) {
-            sunIconDrawables = new ArrayList<Drawable>();
+        if(sunDrawables == null) {
+            sunDrawables = new ArrayList<Drawable>();
         }
 
         sunPath = new Path();
@@ -109,34 +109,69 @@ public class SunCycleView extends View {
      */
     private void calculatePath() {
 
-        double tau = Math.PI * 2.0;
-        double pathOffsetRadians = cycleOffsetHorizontal * tau;
+        double cycleOffsetRadians = cycleOffsetHorizontal * Constants.tau;
 
         System.err.println("PO: " + cycleOffsetHorizontal + ", TDP: " + twilightPositionVertical + ", SO: " + sunPositionHorizontal);
 
         sunPath.reset();
 
         // Initial point of the path
-        sunPath.moveTo(0, (float) -Math.sin(-pathOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
+        sunPath.moveTo(0, (float) -Math.sin(-cycleOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
 
         for(int i = 0; i <= PATH_ITERATIONS; i++) {
 
             float percent = (float) i / PATH_ITERATIONS;
 
-            double pathY = -Math.sin(percent * tau - pathOffsetRadians) * PATH_HEIGHT_SCALE;
+            double pathY = -Math.sin(percent * Constants.tau - cycleOffsetRadians) * PATH_HEIGHT_SCALE;
 
             sunPath.lineTo(percent * canvasWidth, (float) pathY * canvasHeight / 2);
         }
     }
 
-    public int getSunDrawableIndex(float sunOffset, ArrayList<Drawable> sunIconDrawables) {
+    /**
+     * Sets a list of Drawables that will be used for displaying the sun during a full cycle.
+     *
+     * The cycle is assumed to begin at sunrise. Can take any number of drawables and scales
+     * accordingly, but a power of two is recommended. For example {sun, moon},
+     * {sunrise, sun, sunset, moon} or more.
+     */
+    public void setSunDrawables(ArrayList<Drawable> sunDrawables) {
+        this.sunDrawables = sunDrawables;
+    }
+
+    /**
+     * Takes in a ArrayList of Drawable, together with the offset of the cycle, and position of the sun.
+     * Assumes that the ArrayList is a set of sun icons starting from sunrise to a full cycle.
+     * Returns the correct index for the sun icon to use.
+     *
+     * Can take any number of drawables and scales accordingly, but a power of two is recommended.
+     * For example {sun, moon}, {sunrise, sun, sunset, moon} or more.
+     *
+     * @param sunIconDrawables the ArrayList of all sun icons to use over the cycle
+     * @param cycleOffsetHorizontal the offset of the cycle [0, 1]
+     * @param sunPositionHorizontal  the offset of the sun [0, 1]
+     * @return the icon index based on the sun cycle
+     */
+    private int getSunDrawableIndex(ArrayList<Drawable> sunIconDrawables, float cycleOffsetHorizontal,
+                                   float sunPositionHorizontal) {
         int arraySize = sunIconDrawables.size();
 
+        // If there's only one element, pick it
         if(arraySize == 1) {
             return 0;
         }
 
-        return 0;
+        // Progress since sunrise scaled to [0, 1]
+        double progressSinceSunrise = (cycleOffsetHorizontal - 0.25f - sunPositionHorizontal + 1.0) % 1.0;
+
+        // Scales [0, 1] to [0, arraySize[
+        int index = (int) Math.floor(progressSinceSunrise * arraySize);
+
+        if(index == arraySize) {
+            return arraySize - 1;
+        }
+
+        return index;
     }
 
     public void setSunPositionHorizontal(float sunPositionHorizontal) {
@@ -189,21 +224,23 @@ public class SunCycleView extends View {
         // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);
 
-        double tau = Math.PI * 2.0;
-
         // Draws the sun
-        double sunY = -Math.sin(sunPositionHorizontal * tau - cycleOffsetHorizontal * tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
+        double sunY = -Math.sin(sunPositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
 
-        if(!sunIconDrawables.isEmpty()) {
-            // TODO fix multiple drawables
-            Bitmap sunBitmap = ((BitmapDrawable) sunIconDrawables.get(0)).getBitmap();
+        if(!sunDrawables.isEmpty()) {
+
+            int sunDrawableIndex = getSunDrawableIndex(sunDrawables, cycleOffsetHorizontal, sunPositionHorizontal);
+            Bitmap sunBitmap = ((BitmapDrawable) sunDrawables.get(sunDrawableIndex)).getBitmap();
+
             ColorFilter sunIconColorFilter = new PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_IN);
             sunCirclePaint.setColorFilter(sunIconColorFilter);
+
             canvas.drawBitmap(sunBitmap, sunPositionHorizontal * canvasWidth - (sunBitmap.getWidth() / 2f), (float) sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
         } else {
             canvas.drawCircle(sunPositionHorizontal * canvasWidth, (float) sunY, 22f, sunCirclePaint);
         }
 
+        // TODO: remove
         Paint kek = new Paint();
         kek.setColor(Color.RED);
         kek.setStyle(Paint.Style.STROKE);
