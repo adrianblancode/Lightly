@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 /**
  * A class which models the information for a sun cycle
@@ -14,24 +13,19 @@ public class SunCycle {
 
     private static final double tau = Math.PI * 2.0;
 
-    // Container for keeping coordinate positions
-    private class Position {
-        float x;
-        float y;
-    };
+    private float sunPositionHorizontal; // Position [0, 1] in x axis that the sun is at
+    private float cycleOffsetHorizontal; // Position [0, 1] in x axis that the cycle should be offset
+    private float twilightPositionVertical; // Position [0, 1] in y axis that the twilight is at
 
-    private float scaledTimeOffset; // Position [0, 1] that the sun cycle should be offset
-    private float twilightVerticalPosition; // Position [0, 1] that the twilight is set at
-    private Position sunPosition;
-    float sunriseHorizontalPosition;
-    float sunsetHorizontalPosition;
+    float sunrisePosition; // Position [0, 1] in x axis that the sunrise is at
+    float sunsetPosition; // Position [0, 1] in x axis that the sunset is set at
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);
-        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        //simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        Date sunrise = simpleDateFormat.parse(sunriseSunsetData.getSunrise());
-        Date sunset = simpleDateFormat.parse(sunriseSunsetData.getSunset());
+        Date sunrise = simpleDateFormat.parse(sunriseSunsetData.getCivilTwilightBegin());
+        Date sunset = simpleDateFormat.parse(sunriseSunsetData.getCivilTwilightEnd());
 
         initializeSunCycle(sunrise, sunset);
         updateSunPosition(current);
@@ -48,34 +42,31 @@ public class SunCycle {
      */
     private void initializeSunCycle(Date sunrise, Date sunset) {
 
-        sunPosition = new Position();
-
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(sunrise);
 
         // Convert the dates to [0, 1] positions
-        sunriseHorizontalPosition = getScaledTime(sunrise);
-        sunsetHorizontalPosition = getScaledTime(sunset);
+        sunrisePosition = getScaledTime(sunrise);
+        sunsetPosition = getScaledTime(sunset);
 
         // The position where the sun is at it's highest
-        float solarNoonHorizontalPosition = sunriseHorizontalPosition +  (sunsetHorizontalPosition - sunriseHorizontalPosition) / 2f;
+        float solarNoonHorizontalPosition = sunrisePosition +  (sunsetPosition - sunrisePosition) / 2f;
 
         // If the solar noon is at 0.25f, we count that as zero offset
-        scaledTimeOffset = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
+        cycleOffsetHorizontal = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
 
         // Calculate at what scaled height the twilight is at
-        twilightVerticalPosition = (float) getScaledRadian(
-                Math.sin(sunriseHorizontalPosition * tau + scaledTimeOffset * tau));
+        twilightPositionVertical = (float) getScaledRadian(
+                (Math.sin(sunrisePosition * tau + cycleOffsetHorizontal * tau) +
+                        Math.sin(sunsetPosition * tau + cycleOffsetHorizontal * tau)) / 2);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */
     public void updateSunPosition(Date current) {
-        sunPosition.x = getScaledTime(current);
-        sunPosition.y = (float) getScaledRadian(
-                Math.sin(sunPosition.x * tau + scaledTimeOffset * tau));
+        sunPositionHorizontal = getScaledTime(current);
     }
 
-    /** Scales a date to modulo one day, and maps it [0, 1] */
+    /** Scales a Date [0, 1] according to how far it is in the current date */
     private float getScaledTime(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -92,23 +83,30 @@ public class SunCycle {
         return ((radian + tau) % tau) / tau;
     }
 
-    public float getSunHorizontalPosition() {
-        return sunPosition.x;
+    public float getSunPositionHorizontal() {
+        return sunPositionHorizontal;
     }
 
-    public float getOffset() {
-        return scaledTimeOffset;
+    public float getCycleOffsetHorizontal() {
+        return cycleOffsetHorizontal;
     }
 
-    public float getTwilightVerticalPosition() {
-        return twilightVerticalPosition;
+    public float getTwilightPositionVertical() {
+        return twilightPositionVertical;
     }
 
-    public float getSunriseHorizontalPosition() {
-        return sunriseHorizontalPosition;
+    public float getSunrisePosition() {
+        return sunrisePosition;
     }
 
-    public float getSunsetHorizontalPosition() {
-        return sunsetHorizontalPosition;
+    public float getSunsetPosition() {
+        return sunsetPosition;
+    }
+
+    /** Takes a position [0, 1] and converts it to a string of the time (HH:MM) */
+    public static String getTimeFromPosition(float position) {
+        int hours = (int)(position * 24 / 1);
+        int minutes = (int)((position * 24 % 1) * 60);
+        return  hours + ":" + minutes;
     }
 }

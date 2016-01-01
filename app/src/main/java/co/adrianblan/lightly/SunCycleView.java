@@ -3,11 +3,9 @@ package co.adrianblan.lightly;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
@@ -16,6 +14,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
+
+import java.util.ArrayList;
 
 /**
  * A custom view which shows the cycle of the sun.
@@ -29,11 +29,11 @@ public class SunCycleView extends View {
     private static final String DEFAULT_PRIMARY_COLOR_STRING = "#009688";
 
     private int accentColor;
-    private Drawable sunIconDrawable;
+    private ArrayList<Drawable> sunIconDrawables;
 
-    private float sunOffset;
-    private float pathOffset;
-    private float twilightDividerPosition;
+    private float sunPositionHorizontal;
+    private float cycleOffsetHorizontal;
+    private float twilightPositionVertical;
 
     private int canvasWidth;
     private int canvasHeight;
@@ -59,7 +59,8 @@ public class SunCycleView extends View {
         try {
             // TODO: get system accent color
             accentColor = typedArray.getColor(R.styleable.SunCycleView_primaryColor, Color.parseColor(DEFAULT_PRIMARY_COLOR_STRING));
-            sunIconDrawable = typedArray.getDrawable(R.styleable.SunCycleView_sunIcon);
+            sunIconDrawables = new ArrayList<Drawable>();
+            sunIconDrawables.add(typedArray.getDrawable(R.styleable.SunCycleView_sunIcon));
         } finally {
             typedArray.recycle();
         }
@@ -74,10 +75,14 @@ public class SunCycleView extends View {
      */
     private void init() {
 
+        sunPositionHorizontal = 0.5f;
+        cycleOffsetHorizontal = 0.25f;
+        twilightPositionVertical = 0.5f;
 
-        sunOffset = 0.5f;
-        pathOffset = 0.25f;
-        twilightDividerPosition = 0.5f;
+        // In case we couldn't get optional drawables
+        if(sunIconDrawables == null) {
+            sunIconDrawables = new ArrayList<Drawable>();
+        }
 
         sunPath = new Path();
 
@@ -105,9 +110,11 @@ public class SunCycleView extends View {
     private void calculatePath() {
 
         double tau = Math.PI * 2.0;
-        double pathOffsetRadians = pathOffset * tau;
+        double pathOffsetRadians = cycleOffsetHorizontal * tau;
 
-        System.err.println("PO: " + pathOffset + ", TDP: " + twilightDividerPosition + ", SO: " + sunOffset);
+        System.err.println("PO: " + cycleOffsetHorizontal + ", TDP: " + twilightPositionVertical + ", SO: " + sunPositionHorizontal);
+
+        sunPath.reset();
 
         // Initial point of the path
         sunPath.moveTo(0, (float) -Math.sin(-pathOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
@@ -122,16 +129,26 @@ public class SunCycleView extends View {
         }
     }
 
-    public void setSunOffset(float sunOffset) {
-        this.sunOffset = sunOffset;
+    public int getSunDrawableIndex(float sunOffset, ArrayList<Drawable> sunIconDrawables) {
+        int arraySize = sunIconDrawables.size();
+
+        if(arraySize == 1) {
+            return 0;
+        }
+
+        return 0;
     }
 
-    public void setPathOffset(float pathOffset) {
-        this.pathOffset = pathOffset;
+    public void setSunPositionHorizontal(float sunPositionHorizontal) {
+        this.sunPositionHorizontal = sunPositionHorizontal;
     }
 
-    public void setTwilightDividerPosition(float twilightDividerPosition) {
-        this.twilightDividerPosition = twilightDividerPosition;
+    public void setCycleOffsetHorizontal(float cycleOffsetHorizontal) {
+        this.cycleOffsetHorizontal = cycleOffsetHorizontal;
+    }
+
+    public void setTwilightPositionVertical(float twilightPositionVertical) {
+        this.twilightPositionVertical = twilightPositionVertical;
     }
 
     @Override
@@ -164,7 +181,7 @@ public class SunCycleView extends View {
         canvas.translate(0, getMeasuredHeight() / 2F);
 
         // Scale the position from [0, 1] to [-1, 1]
-        float twilightDividerPositionScaled = -(twilightDividerPosition * 2f - 1f) * PATH_HEIGHT_SCALE;
+        float twilightDividerPositionScaled = -(twilightPositionVertical * 2f - 1f) * PATH_HEIGHT_SCALE;
 
         canvas.drawLine(0, twilightDividerPositionScaled * (canvasHeight / 2f), canvasWidth,
                 twilightDividerPositionScaled * (canvasHeight / 2f), twilightDividerPaint);
@@ -175,16 +192,23 @@ public class SunCycleView extends View {
         double tau = Math.PI * 2.0;
 
         // Draws the sun
-        double sunY = -Math.sin(sunOffset * tau - pathOffset * tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
+        double sunY = -Math.sin(sunPositionHorizontal * tau - cycleOffsetHorizontal * tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
 
-        if(sunIconDrawable != null) {
-            Bitmap sunBitmap = ((BitmapDrawable) sunIconDrawable).getBitmap();
+        if(!sunIconDrawables.isEmpty()) {
+            // TODO fix multiple drawables
+            Bitmap sunBitmap = ((BitmapDrawable) sunIconDrawables.get(0)).getBitmap();
             ColorFilter sunIconColorFilter = new PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_IN);
             sunCirclePaint.setColorFilter(sunIconColorFilter);
-            canvas.drawBitmap(sunBitmap, sunOffset * canvasWidth - (sunBitmap.getWidth() / 2f), (float) sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
+            canvas.drawBitmap(sunBitmap, sunPositionHorizontal * canvasWidth - (sunBitmap.getWidth() / 2f), (float) sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
         } else {
-            canvas.drawCircle(sunOffset * canvasWidth, (float) sunY, 22f, sunCirclePaint);
+            canvas.drawCircle(sunPositionHorizontal * canvasWidth, (float) sunY, 22f, sunCirclePaint);
         }
+
+        Paint kek = new Paint();
+        kek.setColor(Color.RED);
+        kek.setStyle(Paint.Style.STROKE);
+        kek.setStrokeWidth(8);
+        canvas.drawPoint(sunPositionHorizontal * canvasWidth, (float) sunY, kek);
 
         canvas.restore();
     }

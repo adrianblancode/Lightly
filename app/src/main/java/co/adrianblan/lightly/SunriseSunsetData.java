@@ -1,31 +1,31 @@
 package co.adrianblan.lightly;
 
 public class SunriseSunsetData {
-    private String sunrise;
-    private String sunset;
+    private String civil_twilight_begin;
+    private String civil_twilight_end;
 
     /** Returns a SunriseSunsetData object that is mocked to a reasonable sunrise and sunset */
     public static SunriseSunsetData getDummySunriseSunsetData() {
         SunriseSunsetData dummySunriseSunsetData = new SunriseSunsetData();
-        dummySunriseSunsetData.setSunrise("8:00:00 AM");
-        dummySunriseSunsetData.setSunset("5:00:00 PM");
+        dummySunriseSunsetData.setCivilTwilightBegin("8:00:00 AM");
+        dummySunriseSunsetData.setCivilTwilightBegin("5:00:00 PM");
 
         return dummySunriseSunsetData;
     }
 
-    public String getSunrise() {
-        return sunrise;
+    public String getCivilTwilightBegin() {
+        return civil_twilight_begin;
     }
 
-    public void setSunrise(String sunrise) {
-        this.sunrise = sunrise;
+    public void setCivilTwilightBegin(String civil_twilight_begin) {
+        this.civil_twilight_begin = civil_twilight_begin;
     }
 
-    public String getSunset() {
-        return sunset;
+    public String getCivilTwilightEnd() {
+        return civil_twilight_end;
     }
 
-    public void setSunset(String sunset) {
-        this.sunset = sunset;
+    public void setCivilTwilightEnd(String civil_twilight_end) {
+        this.civil_twilight_end = civil_twilight_end;
     }
 }

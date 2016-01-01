@@ -7,7 +7,7 @@
     <string name="seekbar_night_color">Night color temperature</string>
     <string name="seekbar_night_brightness">Night brightness</string>
 
-    <string name="sun_cycle_placeholder">Sunset in 8 hours</string>
+    <string name="sun_cycle_placeholder">Unknown time</string>
     <string name="location_text_placeholder">Unknown location</string>
     <string name="location_button">Update Location</string>
 

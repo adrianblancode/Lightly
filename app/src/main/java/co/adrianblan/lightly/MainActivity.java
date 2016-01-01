@@ -18,6 +18,7 @@ import java.util.Date;
 import butterknife.ButterKnife;
 import butterknife.Bind;
 import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
-        requestLocationData(dataRequestHandler);
+        requestLocationData();
 
         // We request permissions to draw over the screen, if we don't have permissions
         permissionRequestHandler = new PermissionRequestHandler();
@@ -110,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Requests the LocationData of the user, and updates the view accordingly. On successful
      * request, attempts to also request SunriseSunsetData.
-     * @param dataRequestHandler the locationDataHandler to use to request the location
      */
-    private void requestLocationData(final DataRequestHandler dataRequestHandler) {
+    private void requestLocationData() {
 
         Call<LocationData> locationDataCall = dataRequestHandler.getLocationDataCall();
 
@@ -124,9 +124,10 @@ public class MainActivity extends AppCompatActivity {
                 locationData = response.body();
                 locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
 
+                System.err.println("Lat: " + locationData.getLat() + ", Lon:" + locationData.getLon());
+
                 // As the request for location was successful, we now request for sun cycle data
-                requestSunCycleData(Double.toString(locationData.getLat()),
-                        Double.toString(locationData.getLon()));
+                requestSunCycleData(locationData.getLat(), locationData.getLon());
             }
 
             @Override
@@ -137,13 +138,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Request the SunriseSunsetData using the latitude and longitude of a location.
-     */
-    private void requestSunCycleData (String latitude, String longitude) {
+    /** Requests the SunriseSunsetData using the latitude and longitude of a location. */
+    private void requestSunCycleData (Double latitude, Double longitude) {
 
-        Call<SunriseSunsetDataWrapper> sunriseSunsetDataWrapperCall = dataRequestHandler.getSunriseSunsetDataCall(latitude,
-                longitude);
+        Call<SunriseSunsetDataWrapper> sunriseSunsetDataWrapperCall =
+                dataRequestHandler.getSunriseSunsetDataCall(
+                        Double.toString(latitude), Double.toString(longitude)
+                );
 
         // Asynchronous callback for the request
         sunriseSunsetDataWrapperCall.enqueue(new Callback<SunriseSunsetDataWrapper>() {
@@ -156,29 +157,23 @@ public class MainActivity extends AppCompatActivity {
                 if(sunriseSunsetDataWrapper != null) {
                     sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
 
-                    if (sunriseSunsetData.getSunrise() != null && sunriseSunsetData.getSunset() != null) {
+                    if (sunriseSunsetData.getCivilTwilightBegin() != null &&
+                            sunriseSunsetData.getCivilTwilightEnd() != null) {
                         try {
-                            Date currentDate = new Date(System.currentTimeMillis());
+
+                            // We create a SunCycle using the sunrise and sunset data
+                            Date currentDate = new Date();
+                            System.err.println("Date: " + currentDate.toString());
                             sunCycle = new SunCycle(currentDate, sunriseSunsetData);
 
-                            // TODO fix this
-                            sunCycleView.setPathOffset(sunCycle.getOffset());
-                            sunCycleView.setSunOffset(sunCycle.getSunHorizontalPosition());
-                            sunCycleView.setTwilightDividerPosition(sunCycle.getTwilightVerticalPosition());
+                            System.err.println("twilightBegin: " + sunCycle.getSunrisePosition() +
+                                    ", twilightEnd: " + sunCycle.getSunsetPosition());
 
-                            if (sunCycle.getSunHorizontalPosition() < sunCycle.getSunriseHorizontalPosition() ||
-                                    sunCycle.getSunHorizontalPosition() > sunCycle.getSunsetHorizontalPosition()) {
+                            sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
+                            sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
+                            sunCycleView.setTwilightPositionVertical(sunCycle.getTwilightPositionVertical());
 
-                                int untilSunrise = (int) (((sunCycle.getSunriseHorizontalPosition() -
-                                        sunCycle.getSunHorizontalPosition() + 1.0f) % 1.0f) * 24f);
-
-                                sunCycleStatus.setText(untilSunrise + " hours until sunrise");
-                            } else {
-                                int untilSunset = (int) (((sunCycle.getSunsetHorizontalPosition() -
-                                        sunCycle.getSunHorizontalPosition() + 1.0f) % 1.0f) * 24f);
-
-                                sunCycleStatus.setText(untilSunset + " hours until sunset");
-                            }
+                            sunCycleStatus.setText(getStatusTextFromSunCycle(sunCycle));
 
                             // Redraw the view
                             sunCycleView.invalidate();
@@ -201,6 +196,44 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** Takes in a SynCycle object, and returns the text for the current status */
+    private String getStatusTextFromSunCycle(SunCycle sunCycle) {
+
+        // If we are before the sunrise or after the sunset, we expect the sunrise
+        if (sunCycle.getSunPositionHorizontal() < sunCycle.getSunrisePosition() ||
+                sunCycle.getSunPositionHorizontal() > sunCycle.getSunsetPosition()) {
+
+            int hoursUntilSunrise = (int) (((sunCycle.getSunrisePosition() -
+                    sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
+
+            return "Sunrise in " + getHumanizedHours(hoursUntilSunrise) + " (" +
+                    SunCycle.getTimeFromPosition(sunCycle.getSunrisePosition()) + ")";
+        } else {
+            // Otherwise, we expect the sunset
+            int hoursUntilSunset = (int) (((sunCycle.getSunsetPosition() -
+                    sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
+
+            return " Sunset in " + getHumanizedHours(hoursUntilSunset) + " (" +
+                    SunCycle.getTimeFromPosition(sunCycle.getSunsetPosition()) + ")";
+        }
+    }
+
+    /** Takes an int, and returns a humanized String specifying the amount time */
+    private String getHumanizedHours(int hours) {
+        if(hours == 0) {
+            return "Less than an hour";
+        } else {
+            return hours + " hours";
+        }
+    }
+
+    /** When the user clicks the update location button, we refresh all location data */
+    @OnClick(R.id.location_button)
+    public void onClick() {
+        requestLocationData();
+    }
+
+    /** When the user checks the enabled switch, we toggle the overlay */
     @OnCheckedChanged(R.id.switch_enabled)
     public void onCheckedChanged(boolean isChecked) {
         if (isChecked) {
