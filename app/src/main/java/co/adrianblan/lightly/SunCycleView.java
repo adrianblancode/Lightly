@@ -24,7 +24,7 @@ public class SunCycleView extends View {
 
     private static final int PATH_ITERATIONS = 100;
     private static final float PATH_HEIGHT_SCALE = 0.80f;
-    private static final float VIEW_HEIGHT_RATIO = 0.35f;
+    private static final float VIEW_HEIGHT_RATIO = 0.314f;
 
     private static final String DEFAULT_PRIMARY_COLOR_STRING = "#009688";
 
@@ -95,12 +95,10 @@ public class SunCycleView extends View {
 
         sunCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunCirclePaint.setColor(accentColor);
-        sunCirclePaint.setStyle(Paint.Style.STROKE);
         sunCirclePaint.setStrokeWidth(8);
 
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         twilightDividerPaint.setColor(Color.LTGRAY);
-        sunCirclePaint.setStyle(Paint.Style.STROKE);
         twilightDividerPaint.setStrokeWidth(2);
     }
 
@@ -142,36 +140,45 @@ public class SunCycleView extends View {
     /**
      * Takes in a ArrayList of Drawable, together with the offset of the cycle, and position of the sun.
      * Assumes that the ArrayList is a set of sun icons starting from sunrise to a full cycle.
-     * Returns the correct index for the sun icon to use.
+     * Returns the correct drawable for the sun icon to use.
      *
      * Can take any number of drawables and scales accordingly, but a power of two is recommended.
      * For example {sun, moon}, {sunrise, sun, sunset, moon} or more.
      *
-     * @param sunIconDrawables the ArrayList of all sun icons to use over the cycle
+     * @param sunDrawables the ArrayList of all sun icons to use over the cycle
      * @param cycleOffsetHorizontal the offset of the cycle [0, 1]
      * @param sunPositionHorizontal  the offset of the sun [0, 1]
-     * @return the icon index based on the sun cycle
+     * @return the drawable based on the sun cycle
      */
-    private int getSunDrawableIndex(ArrayList<Drawable> sunIconDrawables, float cycleOffsetHorizontal,
+    private Drawable getSunDrawableInCycle(ArrayList<Drawable> sunDrawables, float cycleOffsetHorizontal,
                                    float sunPositionHorizontal) {
-        int arraySize = sunIconDrawables.size();
 
-        // If there's only one element, pick it
-        if(arraySize == 1) {
-            return 0;
+        // If no elements, return null
+        if(sunDrawables.isEmpty()) {
+            return null;
         }
+
+        // If there's N icons, the first icon does not start applying at zero, but rather -(1.0 / N) / 2.0
+        double iconSelectionOffset = (1.0 / (double) sunDrawables.size()) / 2.0;
 
         // Progress since sunrise scaled to [0, 1]
-        double progressSinceSunrise = (cycleOffsetHorizontal - 0.25f - sunPositionHorizontal + 1.0) % 1.0;
+        double progressSinceSunrise = (sunPositionHorizontal - cycleOffsetHorizontal +
+                iconSelectionOffset + 1.0) % 1.0;
 
         // Scales [0, 1] to [0, arraySize[
-        int index = (int) Math.floor(progressSinceSunrise * arraySize);
+        int index = (int) Math.floor(progressSinceSunrise * sunDrawables.size());
 
-        if(index == arraySize) {
-            return arraySize - 1;
+        // If underflow, return first
+        if(index <= 0) {
+            return sunDrawables.get(0);
         }
 
-        return index;
+        // If overflow, return last
+        if(index >= sunDrawables.size()) {
+            return sunDrawables.get(sunDrawables.size() - 1);
+        }
+
+        return sunDrawables.get(index);
     }
 
     public void setSunPositionHorizontal(float sunPositionHorizontal) {
@@ -213,13 +220,17 @@ public class SunCycleView extends View {
         calculatePath();
 
         canvas.save();
+
+        // Translate canvas so that (0, 0) targets 0 horizontal, but halfway vertical
         canvas.translate(0, getMeasuredHeight() / 2F);
 
-        // Scale the position from [0, 1] to [-1, 1]
-        float twilightDividerPositionScaled = -(twilightPositionVertical * 2f - 1f) * PATH_HEIGHT_SCALE;
+        float twilightDividerPositionScaled = twilightPositionVertical * PATH_HEIGHT_SCALE;
 
         canvas.drawLine(0, twilightDividerPositionScaled * (canvasHeight / 2f), canvasWidth,
                 twilightDividerPositionScaled * (canvasHeight / 2f), twilightDividerPaint);
+
+        canvas.drawCircle(canvasWidth / 2f, twilightDividerPositionScaled * (canvasHeight / 2f), 6f,
+                twilightDividerPaint);
 
         // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);
@@ -229,9 +240,11 @@ public class SunCycleView extends View {
 
         if(!sunDrawables.isEmpty()) {
 
-            int sunDrawableIndex = getSunDrawableIndex(sunDrawables, cycleOffsetHorizontal, sunPositionHorizontal);
-            Bitmap sunBitmap = ((BitmapDrawable) sunDrawables.get(sunDrawableIndex)).getBitmap();
+            // Get the appropriate sun drawable, convert to bitmap
+            Drawable sunDrawable = getSunDrawableInCycle(sunDrawables, cycleOffsetHorizontal, sunPositionHorizontal);
+            Bitmap sunBitmap = ((BitmapDrawable) sunDrawable).getBitmap();
 
+            // Tint sun drawable
             ColorFilter sunIconColorFilter = new PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_IN);
             sunCirclePaint.setColorFilter(sunIconColorFilter);
 
@@ -239,13 +252,6 @@ public class SunCycleView extends View {
         } else {
             canvas.drawCircle(sunPositionHorizontal * canvasWidth, (float) sunY, 22f, sunCirclePaint);
         }
-
-        // TODO: remove
-        Paint kek = new Paint();
-        kek.setColor(Color.RED);
-        kek.setStyle(Paint.Style.STROKE);
-        kek.setStrokeWidth(8);
-        canvas.drawPoint(sunPositionHorizontal * canvasWidth, (float) sunY, kek);
 
         canvas.restore();
     }

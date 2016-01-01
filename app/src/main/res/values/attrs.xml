@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SunCycleView">
+        <attr name="primaryColor" format="color"/>
+        <attr name="sunDrawable" format="integer"/>
+    </declare-styleable>
+</resources>

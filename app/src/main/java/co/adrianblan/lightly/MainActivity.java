@@ -164,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<SunriseSunsetDataWrapper> response, Retrofit retrofit) {
                 SunriseSunsetDataWrapper sunriseSunsetDataWrapper = response.body();
 
-                // TODO add null check
                 if(sunriseSunsetDataWrapper != null) {
                     sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
 
@@ -174,20 +173,13 @@ public class MainActivity extends AppCompatActivity {
 
                             // We create a SunCycle using the sunrise and sunset data
                             Date currentDate = new Date();
-                            System.err.println("Date: " + currentDate.toString());
                             sunCycle = new SunCycle(currentDate, sunriseSunsetData);
 
-                            System.err.println("twilightBegin: " + sunCycle.getSunrisePosition() +
-                                    ", twilightEnd: " + sunCycle.getSunsetPosition());
+                            updateSunCycleView(sunCycle);
 
-                            sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
-                            sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
-                            sunCycleView.setTwilightPositionVertical(sunCycle.getTwilightPositionVertical());
-
-                            sunCycleStatus.setText(getStatusTextFromSunCycle(sunCycle));
-
-                            // Redraw the view
-                            sunCycleView.invalidate();
+                            System.err.println("Date: " + currentDate.toString());
+                            System.err.println("twilightBegin: " + sunCycle.getSunrisePositionHorizontal() +
+                                    ", twilightEnd: " + sunCycle.getSunsetPositionHorizontal());
 
                         } catch (ParseException e) {
                             e.printStackTrace();
@@ -207,32 +199,44 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** Takes a SunCycle, and updates the view according to the data inside */
+    private void updateSunCycleView(SunCycle sunCycle) {
+        sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
+        sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
+        sunCycleView.setTwilightPositionVertical(sunCycle.getTwilightPositionVertical());
+
+        sunCycleStatus.setText(getStatusTextFromSunCycle(sunCycle));
+
+        // Redraw the view
+        sunCycleView.invalidate();
+    }
+
     /** Takes in a SynCycle object, and returns the text for the current status */
     private String getStatusTextFromSunCycle(SunCycle sunCycle) {
 
         // If we are before the sunrise or after the sunset, we expect the sunrise
-        if (sunCycle.getSunPositionHorizontal() < sunCycle.getSunrisePosition() ||
-                sunCycle.getSunPositionHorizontal() > sunCycle.getSunsetPosition()) {
+        if (sunCycle.getSunPositionHorizontal() < sunCycle.getSunrisePositionHorizontal() ||
+                sunCycle.getSunPositionHorizontal() > sunCycle.getSunsetPositionHorizontal()) {
 
-            int hoursUntilSunrise = (int) (((sunCycle.getSunrisePosition() -
+            int hoursUntilSunrise = (int) (((sunCycle.getSunrisePositionHorizontal() -
                     sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
 
             return "Sunrise in " + getHumanizedHours(hoursUntilSunrise) + " (" +
-                    SunCycle.getTimeFromPosition(sunCycle.getSunrisePosition()) + ")";
+                    SunCycle.getTimeFromPosition(sunCycle.getSunrisePositionHorizontal()) + ")";
         } else {
             // Otherwise, we expect the sunset
-            int hoursUntilSunset = (int) (((sunCycle.getSunsetPosition() -
+            int hoursUntilSunset = (int) (((sunCycle.getSunsetPositionHorizontal() -
                     sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
 
             return " Sunset in " + getHumanizedHours(hoursUntilSunset) + " (" +
-                    SunCycle.getTimeFromPosition(sunCycle.getSunsetPosition()) + ")";
+                    SunCycle.getTimeFromPosition(sunCycle.getSunsetPositionHorizontal()) + ")";
         }
     }
 
     /** Takes an int, and returns a humanized String specifying the amount time */
     private String getHumanizedHours(int hours) {
         if(hours == 0) {
-            return "Less than an hour";
+            return "less than an hour";
         } else {
             return hours + " hours";
         }

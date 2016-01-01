@@ -15,8 +15,8 @@ public class SunCycle {
     private float cycleOffsetHorizontal; // Position [0, 1] in x axis that the cycle should be offset
     private float twilightPositionVertical; // Position [0, 1] in y axis that the twilight is at
 
-    float sunrisePosition; // Position [0, 1] in x axis that the sunrise is at
-    float sunsetPosition; // Position [0, 1] in x axis that the sunset is set at
+    float sunrisePositionHorizontal; // Position [0, 1] in x axis that the sunrise is at
+    float sunsetPositionHorizontal; // Position [0, 1] in x axis that the sunset is set at
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);
@@ -44,19 +44,17 @@ public class SunCycle {
         calendar.setTime(sunrise);
 
         // Convert the dates to [0, 1] positions
-        sunrisePosition = getScaledTime(sunrise);
-        sunsetPosition = getScaledTime(sunset);
+        sunrisePositionHorizontal = getScaledTime(sunrise);
+        sunsetPositionHorizontal = getScaledTime(sunset);
 
         // The position where the sun is at it's highest
-        float solarNoonHorizontalPosition = sunrisePosition +  (sunsetPosition - sunrisePosition) / 2f;
+        float solarNoonHorizontalPosition = sunrisePositionHorizontal + (sunsetPositionHorizontal - sunrisePositionHorizontal) / 2f;
 
-        // If the solar noon is at 0.25f, we count that as zero offset
+        // The start of the cycle is a quarter earlier than the solar noon
         cycleOffsetHorizontal = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
 
         // Calculate at what scaled height the twilight is at
-        twilightPositionVertical = (float) getScaledRadian(
-                (Math.sin(sunrisePosition * Constants.tau + cycleOffsetHorizontal * Constants.tau) +
-                        Math.sin(sunsetPosition * Constants.tau + cycleOffsetHorizontal * Constants.tau)) / 2);
+        twilightPositionVertical = (float) -Math.sin(sunrisePositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */
@@ -93,12 +91,12 @@ public class SunCycle {
         return twilightPositionVertical;
     }
 
-    public float getSunrisePosition() {
-        return sunrisePosition;
+    public float getSunrisePositionHorizontal() {
+        return sunrisePositionHorizontal;
     }
 
-    public float getSunsetPosition() {
-        return sunsetPosition;
+    public float getSunsetPositionHorizontal() {
+        return sunsetPositionHorizontal;
     }
 
     /** Takes a position [0, 1] and converts it to a string of the time (HH:MM) */
