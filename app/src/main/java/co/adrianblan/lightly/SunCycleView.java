@@ -43,6 +43,7 @@ public class SunCycleView extends View {
     private Paint sunPathPaint;
     private Paint sunCirclePaint;
     private Paint twilightDividerPaint;
+    private Paint twilightPointPaint;
 
     public SunCycleView(Context context) {
         super(context);
@@ -100,6 +101,10 @@ public class SunCycleView extends View {
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         twilightDividerPaint.setColor(Color.LTGRAY);
         twilightDividerPaint.setStrokeWidth(2);
+
+        twilightPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        twilightPointPaint.setColor(Color.LTGRAY);
+        twilightPointPaint.setStrokeWidth(4);
     }
 
     /**
@@ -224,13 +229,21 @@ public class SunCycleView extends View {
         // Translate canvas so that (0, 0) targets 0 horizontal, but halfway vertical
         canvas.translate(0, getMeasuredHeight() / 2F);
 
-        float twilightDividerPositionScaled = twilightPositionVertical * PATH_HEIGHT_SCALE;
+        float twilightDividerPositionScaled = -twilightPositionVertical * PATH_HEIGHT_SCALE * (canvasHeight / 2f);
 
-        canvas.drawLine(0, twilightDividerPositionScaled * (canvasHeight / 2f), canvasWidth,
-                twilightDividerPositionScaled * (canvasHeight / 2f), twilightDividerPaint);
+        canvas.drawLine(0, twilightDividerPositionScaled, canvasWidth,
+                twilightDividerPositionScaled, twilightDividerPaint);
 
-        canvas.drawCircle(canvasWidth / 2f, twilightDividerPositionScaled * (canvasHeight / 2f), 6f,
+        int dividerPointHeight = 20;
+
+        canvas.drawLine(canvasWidth / 2f, twilightDividerPositionScaled - dividerPointHeight / 2,
+                canvasWidth / 2f, twilightDividerPositionScaled + dividerPointHeight / 2,
+                twilightPointPaint);
+
+        /**
+        canvas.drawCircle(canvasWidth / 2f, twilightDividerPositionScaled * (canvasHeight / 2f), 5f,
                 twilightDividerPaint);
+         */
 
         // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);

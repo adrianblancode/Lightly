@@ -54,7 +54,7 @@ public class SunCycle {
         cycleOffsetHorizontal = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
 
         // Calculate at what scaled height the twilight is at
-        twilightPositionVertical = (float) -Math.sin(sunrisePositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
+        twilightPositionVertical = (float) Math.sin(sunrisePositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */

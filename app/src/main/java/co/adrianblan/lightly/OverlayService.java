@@ -4,16 +4,10 @@ import android.app.Service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
+
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.WindowManager;
@@ -32,30 +26,36 @@ public class OverlayService extends Service {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-
-        overlayView = new LinearLayout(this);
-
-        // We set the overlay to be non-interactive
-        overlayView.setFocusable(false);
-        overlayView.setClickable(false);
-        overlayView.setKeepScreenOn(false);
-        overlayView.setLongClickable(false);
-        overlayView.setFocusableInTouchMode(false);
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        int filterColor = intent.getIntExtra("filterColor", Color.argb(0, 0, 0, 0));
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 
-        // Parameters for a fullscreen transparent overlay
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSPARENT);
+        // If the overlay is null, we instansiate and add it to the WindowManager
+        if(overlayView == null) {
+            overlayView = new LinearLayout(this);
 
-        overlayView.setBackgroundColor(getBackgroundColor(85));
-        windowManager.addView(overlayView, layoutParams);
+            // We set the overlay to be non-interactive
+            overlayView.setFocusable(false);
+            overlayView.setClickable(false);
+            overlayView.setKeepScreenOn(false);
+            overlayView.setLongClickable(false);
+            overlayView.setFocusableInTouchMode(false);
+
+            // Parameters for a fullscreen transparent overlay
+            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    PixelFormat.TRANSPARENT);
+
+            windowManager.addView(overlayView, layoutParams);
+        }
+
+        // Now that our view is added, we can simply change it's color
+        overlayView.setBackgroundColor(filterColor);
+
+        return START_STICKY;
     }
 
     /**

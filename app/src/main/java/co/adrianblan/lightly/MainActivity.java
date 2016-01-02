@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationData locationData;
     private SunriseSunsetData sunriseSunsetData;
     private SunCycle sunCycle;
+    private SunCycleColor sunCycleColor;
     private DataRequestHandler dataRequestHandler;
     private PermissionRequestHandler permissionRequestHandler;
 
@@ -69,11 +70,25 @@ public class MainActivity extends AppCompatActivity {
         switchEnabled.setChecked(isOverlayServiceActive);
 
         // Update SeekBars
-        int progress = sharedPreferences.getInt("seekBarNightColorProgress", seekBarDayProgressDefaultValue);
-        seekBarNightColor.setProgress(progress);
+        seekBarNightColor.setProgress(sharedPreferences.getInt("seekBarNightColorProgress", seekBarDayProgressDefaultValue));
+        seekBarNightBrightness.setProgress(sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue));
 
-        progress = sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue);
-        seekBarNightBrightness.setProgress(progress);
+        SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                updateOverlayServiceIfActive();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        };
+
+        seekBarNightColor.setOnSeekBarChangeListener(seekBarChangeListener);
+        seekBarNightBrightness.setOnSeekBarChangeListener(seekBarChangeListener);
+
 
         // Add sun drawables that the SunCycle will draw over the cycle
         ArrayList<Drawable> sunDrawables = new ArrayList<Drawable>();
@@ -87,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         // TODO: serialize and store
         locationData = LocationData.getDummyLocationData();
         sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
+        sunCycleColor = new SunCycleColor();
 
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
@@ -109,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
 
     protected void startOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
+        intent.putExtra("filterColor", sunCycleColor.getOverlayColor(seekBarNightColor.getProgress(),
+                seekBarNightBrightness.getProgress()));
         startService(intent);
         isOverlayServiceActive = true;
     }
@@ -117,6 +135,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
         isOverlayServiceActive = false;
+    }
+
+    public void updateOverlayServiceIfActive() {
+        if(isOverlayServiceActive) {
+            startOverlayService();
+        }
     }
 
     /**
