@@ -21,8 +21,10 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:layout_alignParentBottom="true"
             android:text="Enabled"
+            android:textOff="Enabled"
             android:textSize="16dp"
-            android:textColor="@android:color/secondary_text_dark"
+            android:textColor="@android:color/darker_gray"
+            android:textColorHighlight="@android:color/darker_gray"
             android:checked="true"/>
 
         <TextView

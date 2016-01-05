@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +17,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import butterknife.BindDrawable;
 import butterknife.ButterKnife;
 import butterknife.Bind;
 import butterknife.OnCheckedChanged;
@@ -27,19 +27,10 @@ import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+/**
+ * The main class of the application. Handles all user interactions and services from the main screen.
+ */
 public class MainActivity extends AppCompatActivity {
-
-    private static final boolean isOverlayServiceActiveDefaultValue = true;
-    private static final int seekBarDayProgressDefaultValue = 80;
-    private static final int seekBarNightProgressDefaultValue = 20;
-
-    private boolean isOverlayServiceActive;
-    private LocationData locationData;
-    private SunriseSunsetData sunriseSunsetData;
-    private SunCycle sunCycle;
-    private SunCycleColor sunCycleColor;
-    private DataRequestHandler dataRequestHandler;
-    private PermissionRequestHandler permissionRequestHandler;
 
     @Bind(R.id.switch_enabled)
     Switch switchEnabled;
@@ -52,9 +43,29 @@ public class MainActivity extends AppCompatActivity {
     TextView sunCycleStatus;
     @Bind(R.id.sun_cycle)
     SunCycleView sunCycleView;
-
     @Bind(R.id.location_body)
     TextView locationBody;
+
+    @BindDrawable(R.drawable.ic_brightness_medium_white_inverted_24dp)
+    Drawable brightnessMediumInvertedDrawable;
+    @BindDrawable(R.drawable.ic_brightness_high_white_24dp)
+    Drawable brightnessHighDrawable;
+    @BindDrawable(R.drawable.ic_brightness_medium_white_24dp)
+    Drawable brightnessMediumDrawable;
+    @BindDrawable(R.drawable.ic_brightness_low_white_24dp)
+    Drawable brightnessLowDrawable;
+
+    private static final boolean isOverlayServiceActiveDefaultValue = true;
+    private static final int seekBarDayProgressDefaultValue = 80;
+    private static final int seekBarNightProgressDefaultValue = 20;
+
+    private boolean isOverlayServiceActive;
+    private LocationData locationData;
+    private SunriseSunsetData sunriseSunsetData;
+    private SunCycle sunCycle;
+    private SunCycleColor sunCycleColor;
+    private DataRequestHandler dataRequestHandler;
+    private PermissionRequestHandler permissionRequestHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         seekBarNightColor.setProgress(sharedPreferences.getInt("seekBarNightColorProgress", seekBarDayProgressDefaultValue));
         seekBarNightBrightness.setProgress(sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue));
 
+        // Seekbar listener
         SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -89,13 +101,12 @@ public class MainActivity extends AppCompatActivity {
         seekBarNightColor.setOnSeekBarChangeListener(seekBarChangeListener);
         seekBarNightBrightness.setOnSeekBarChangeListener(seekBarChangeListener);
 
-
         // Add sun drawables that the SunCycle will draw over the cycle
         ArrayList<Drawable> sunDrawables = new ArrayList<Drawable>();
-        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_medium_white_inverted_24dp));
-        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_high_white_24dp));
-        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_medium_white_24dp));
-        sunDrawables.add(ContextCompat.getDrawable(this, R.drawable.ic_brightness_low_white_24dp));
+        sunDrawables.add(brightnessMediumInvertedDrawable);
+        sunDrawables.add(brightnessHighDrawable);
+        sunDrawables.add(brightnessMediumDrawable);
+        sunDrawables.add(brightnessLowDrawable);
         sunCycleView.setSunDrawables(sunDrawables);
 
         // Populate with dummy data
