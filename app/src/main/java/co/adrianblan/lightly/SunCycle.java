@@ -79,6 +79,40 @@ public class SunCycle {
         return ((radian + Constants.tau) % Constants.tau) / Constants.tau;
     }
 
+    /** Takes a position [0, 1] and converts it to a string of the time (HH:MM) */
+    public static String getTimeFromPosition(float position) {
+        int hours = (int)(position * 24 / 1);
+
+        int minutes = (int)((position * 24 % 1) * 60);
+
+        // Make sure that minutes are always two digits
+        if(minutes / 10 == 0) {
+            return hours + ":0" + minutes;
+        } else {
+            return hours + ":" + minutes;
+        }
+    }
+
+    /** Takes in a SynCycle object, and returns the text for the current status */
+    public String getStatusText() {
+
+        // If we are before the sunrise or after the sunset, we expect the sunrise
+        if (getSunPositionHorizontal() < getSunrisePositionHorizontal() ||
+                getSunPositionHorizontal() > getSunsetPositionHorizontal()) {
+
+            int hoursUntilSunrise = (int) (((getSunrisePositionHorizontal() -
+                    getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
+
+            return "Sunrise in " + StringUtils.getHumanizedHours(hoursUntilSunrise);
+        } else {
+            // Otherwise, we expect the sunset
+            int hoursUntilSunset = (int) (((getSunsetPositionHorizontal() -
+                    getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
+
+            return " Sunset in " + StringUtils.getHumanizedHours(hoursUntilSunset);
+        }
+    }
+
     public float getSunPositionHorizontal() {
         return sunPositionHorizontal;
     }
@@ -97,12 +131,5 @@ public class SunCycle {
 
     public float getSunsetPositionHorizontal() {
         return sunsetPositionHorizontal;
-    }
-
-    /** Takes a position [0, 1] and converts it to a string of the time (HH:MM) */
-    public static String getTimeFromPosition(float position) {
-        int hours = (int)(position * 24 / 1);
-        int minutes = (int)((position * 24 % 1) * 60);
-        return  hours + ":" + minutes;
     }
 }

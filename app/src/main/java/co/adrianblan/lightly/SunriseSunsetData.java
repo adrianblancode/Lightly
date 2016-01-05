@@ -7,10 +7,15 @@ public class SunriseSunsetData {
     /** Returns a SunriseSunsetData object that is mocked to a reasonable sunrise and sunset */
     public static SunriseSunsetData getDummySunriseSunsetData() {
         SunriseSunsetData dummySunriseSunsetData = new SunriseSunsetData();
-        dummySunriseSunsetData.setCivilTwilightBegin("8:00:00 AM");
-        dummySunriseSunsetData.setCivilTwilightBegin("5:00:00 PM");
+        dummySunriseSunsetData.setCivilTwilightBegin("08:00:00 AM");
+        dummySunriseSunsetData.setCivilTwilightEnd("05:00:00 PM");
 
         return dummySunriseSunsetData;
+    }
+
+    /** Returns whether all the member variables in the object are not empty */
+    public boolean isValid() {
+        return (!civil_twilight_begin.isEmpty() && !civil_twilight_end.isEmpty());
     }
 
     public String getCivilTwilightBegin() {

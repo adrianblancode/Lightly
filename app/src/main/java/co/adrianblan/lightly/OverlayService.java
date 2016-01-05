@@ -27,7 +27,13 @@ public class OverlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int filterColor = intent.getIntExtra("filterColor", Color.argb(0, 0, 0, 0));
+
+        int filterColor = Color.argb(0, 0, 0, 0);
+
+        if(intent != null) {
+            filterColor = intent.getIntExtra("filterColor", Color.argb(0, 0, 0, 0));
+        }
+
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 
         // If the overlay is null, we instansiate and add it to the WindowManager

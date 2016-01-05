@@ -6,9 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.seekbar_night_brightness)
     SeekBar seekBarNightBrightness;
 
+    @Bind(R.id.lightly_main)
+    LinearLayout lightlyMainView;
     @Bind(R.id.sun_cycle_status)
     TextView sunCycleStatus;
     @Bind(R.id.sun_cycle)
@@ -115,6 +120,18 @@ public class MainActivity extends AppCompatActivity {
         sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
         sunCycleColor = new SunCycleColor();
 
+        locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
+
+        try {
+            // We create a SunCycle using the sunrise and sunset data
+            Date currentDate = new Date();
+            sunCycle = new SunCycle(currentDate, sunriseSunsetData);
+            updateSunCycleView(sunCycle);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
         requestLocationData();
@@ -168,18 +185,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Response<LocationData> response, Retrofit retrofit) {
                 locationData = response.body();
-                locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
 
-                System.err.println("Lat: " + locationData.getLat() + ", Lon:" + locationData.getLon());
+                // Check that our data was successfully fetched
+                if(locationData.isValid()) {
+                    locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
 
-                // As the request for location was successful, we now request for sun cycle data
-                requestSunCycleData(locationData.getLat(), locationData.getLon());
+                    // As the request for location was successful, we now request for sun cycle data
+                    requestSunCycleData(locationData.getLat(), locationData.getLon());
+                } else {
+                    System.err.println("Error: Location data is null");
+                }
             }
 
             @Override
             public void onFailure(Throwable t) {
                 System.err.println("Failed to get location data" + t.toString());
-                locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
+
+                // Snackbar where user can retry fetching data
+                Snackbar.make(lightlyMainView, "Oops! Unable to connect to server", Snackbar.LENGTH_LONG)
+                        .setAction("Retry", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                requestLocationData();
+                            }
+                        }).show();
             }
         });
     }
@@ -199,22 +228,16 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<SunriseSunsetDataWrapper> response, Retrofit retrofit) {
                 SunriseSunsetDataWrapper sunriseSunsetDataWrapper = response.body();
 
+                // Check that our data was successfully fetched
                 if(sunriseSunsetDataWrapper != null) {
                     sunriseSunsetData = sunriseSunsetDataWrapper.getResults();
 
-                    if (sunriseSunsetData.getCivilTwilightBegin() != null &&
-                            sunriseSunsetData.getCivilTwilightEnd() != null) {
+                    if (sunriseSunsetData.isValid()) {
                         try {
-
                             // We create a SunCycle using the sunrise and sunset data
                             Date currentDate = new Date();
                             sunCycle = new SunCycle(currentDate, sunriseSunsetData);
-
                             updateSunCycleView(sunCycle);
-
-                            System.err.println("Date: " + currentDate.toString());
-                            System.err.println("twilightBegin: " + sunCycle.getSunrisePositionHorizontal() +
-                                    ", twilightEnd: " + sunCycle.getSunsetPositionHorizontal());
 
                         } catch (ParseException e) {
                             e.printStackTrace();
@@ -223,13 +246,22 @@ public class MainActivity extends AppCompatActivity {
                         System.err.println("Error: sunrise and sunset are null");
                     }
                 } else {
-                    System.err.println("Error: sunrise sunset request returned error code");
+                    System.err.println("Error: sunrise sunset request returned null");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
                 System.err.println("Error: Failed to get sunrise and sunset data" + t.toString());
+
+                // Snackbar where user can retry fetching data
+                Snackbar.make(lightlyMainView, "Oops! Unable to connect to server", Snackbar.LENGTH_LONG)
+                        .setAction("Retry", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                requestLocationData();
+                            }
+                        }).show();
             }
         });
     }
@@ -240,41 +272,10 @@ public class MainActivity extends AppCompatActivity {
         sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
         sunCycleView.setTwilightPositionVertical(sunCycle.getTwilightPositionVertical());
 
-        sunCycleStatus.setText(getStatusTextFromSunCycle(sunCycle));
+        sunCycleStatus.setText(sunCycle.getStatusText());
 
         // Redraw the view
         sunCycleView.invalidate();
-    }
-
-    /** Takes in a SynCycle object, and returns the text for the current status */
-    private String getStatusTextFromSunCycle(SunCycle sunCycle) {
-
-        // If we are before the sunrise or after the sunset, we expect the sunrise
-        if (sunCycle.getSunPositionHorizontal() < sunCycle.getSunrisePositionHorizontal() ||
-                sunCycle.getSunPositionHorizontal() > sunCycle.getSunsetPositionHorizontal()) {
-
-            int hoursUntilSunrise = (int) (((sunCycle.getSunrisePositionHorizontal() -
-                    sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
-
-            return "Sunrise in " + getHumanizedHours(hoursUntilSunrise) + " (" +
-                    SunCycle.getTimeFromPosition(sunCycle.getSunrisePositionHorizontal()) + ")";
-        } else {
-            // Otherwise, we expect the sunset
-            int hoursUntilSunset = (int) (((sunCycle.getSunsetPositionHorizontal() -
-                    sunCycle.getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
-
-            return " Sunset in " + getHumanizedHours(hoursUntilSunset) + " (" +
-                    SunCycle.getTimeFromPosition(sunCycle.getSunsetPositionHorizontal()) + ")";
-        }
-    }
-
-    /** Takes an int, and returns a humanized String specifying the amount time */
-    private String getHumanizedHours(int hours) {
-        if(hours == 0) {
-            return "less than an hour";
-        } else {
-            return hours + " hours";
-        }
     }
 
     /** When the user clicks the update location button, we refresh all location data */

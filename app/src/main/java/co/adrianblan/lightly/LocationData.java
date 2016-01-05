@@ -32,6 +32,11 @@ public class LocationData {
         return dummyLocationData;
     }
 
+    /** Returns whether all the member variables in the object are not empty */
+    public boolean isValid() {
+        return (!regionName.isEmpty() && !country.isEmpty());
+    }
+
     public String getRegionName() {
         return regionName;
     }
