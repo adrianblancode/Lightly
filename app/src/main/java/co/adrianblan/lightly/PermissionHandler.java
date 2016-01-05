@@ -11,7 +11,7 @@ import android.support.v7.app.AlertDialog;
 /**
  * Handles checking for permissions, and requesting permissions.
  */
-public class PermissionRequestHandler {
+public class PermissionHandler {
 
     public static final int OVERLAY_PERMISSION_REQUEST_CODE = 1;
 

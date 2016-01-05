@@ -20,7 +20,6 @@ public class SunCycle {
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);
-        //simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         Date sunrise = simpleDateFormat.parse(sunriseSunsetData.getCivilTwilightBegin());
         Date sunset = simpleDateFormat.parse(sunriseSunsetData.getCivilTwilightEnd());

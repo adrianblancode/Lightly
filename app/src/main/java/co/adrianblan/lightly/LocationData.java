@@ -1,8 +1,11 @@
 package co.adrianblan.lightly;
 
+import org.parceler.Parcel;
+
 /**
  * Stores the data of the name of the location, and the position.
  */
+@Parcel
 public class LocationData {
 
     private String regionName; // Region name is roughly the largest nearby city
@@ -11,7 +14,7 @@ public class LocationData {
     private double lat;
     private double lon;
 
-    public LocationData() {}
+    public LocationData() { /*Required empty bean constructor*/ }
 
     public LocationData (String regionName, String country, double lat, double lon) {
         this.regionName = regionName;
@@ -25,7 +28,7 @@ public class LocationData {
         LocationData dummyLocationData = new LocationData();
 
         dummyLocationData.setRegionName("Unknown");
-        dummyLocationData.setRegionName("Sweden");
+        dummyLocationData.setRegionName("Unknown");
         dummyLocationData.setLat(59.32);
         dummyLocationData.setLon(18.07);
 

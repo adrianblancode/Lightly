@@ -1,8 +1,18 @@
 package co.adrianblan.lightly;
 
+import org.parceler.Parcel;
+
+/**
+ * Stores the data of times for sunrise and sunset.
+ *
+ * All data is stored in the format 'hh:mm:ss aa' in UTC time.
+ */
+@Parcel
 public class SunriseSunsetData {
     private String civil_twilight_begin;
     private String civil_twilight_end;
+
+    public SunriseSunsetData() { /*Required empty bean constructor*/ }
 
     /** Returns a SunriseSunsetData object that is mocked to a reasonable sunrise and sunset */
     public static SunriseSunsetData getDummySunriseSunsetData() {
