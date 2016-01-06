@@ -64,15 +64,15 @@ public class MainActivity extends AppCompatActivity {
     @BindDrawable(R.drawable.ic_brightness_low_white_24dp)
     Drawable brightnessLowDrawable;
 
-    private static final int seekBarDayProgressDefaultValue = 80;
-    private static final int seekBarNightProgressDefaultValue = 20;
+    private static final int SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE = 80;
+    private static final int SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE = 20;
 
     private boolean isOverlayServiceActive;
     private boolean hasDummyData;
     private LocationData locationData;
     private SunriseSunsetData sunriseSunsetData;
     private SunCycle sunCycle;
-    private SunCycleColor sunCycleColor;
+    private SunCycleColorHandler sunCycleColorHandler;
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
     private Gson gson;
@@ -87,7 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Restore data from SharedPreferences
         SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+
         isOverlayServiceActive = sharedPreferences.getBoolean("isOverlayServiceActive", false);
+        switchEnabled.setChecked(isOverlayServiceActive);
+
+        // Update SeekBars
+        seekBarNightColor.setProgress(sharedPreferences.getInt("seekBarNightColorProgress", SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE));
+        seekBarNightBrightness.setProgress(sharedPreferences.getInt("seekBarNightBrightnessProgress", SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE));
+
         hasDummyData = sharedPreferences.getBoolean("hasDummyData", true);
 
         // If we have stored previous data, retrieve it. Otherwise populate with dummy data.
@@ -102,24 +109,49 @@ public class MainActivity extends AppCompatActivity {
             sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
         }
 
-        switchEnabled.setChecked(isOverlayServiceActive);
+        try {
+            // We create a SunCycle using the sunrise and sunset data
+            Date currentDate = new Date();
+            sunCycle = new SunCycle(currentDate, sunriseSunsetData);
 
-        // Update SeekBars
-        seekBarNightColor.setProgress(sharedPreferences.getInt("seekBarNightColorProgress", seekBarDayProgressDefaultValue));
-        seekBarNightBrightness.setProgress(sharedPreferences.getInt("seekBarNightBrightnessProgress", seekBarNightProgressDefaultValue));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        // Update colors
+        String sunCycleColorHandlerJson = sharedPreferences.getString("sunCycleColorHandler", null);
+
+        if(sunCycleColorHandlerJson != null) {
+            sunCycleColorHandler = gson.fromJson(sunCycleColorHandlerJson, SunCycleColorHandler.class);
+        } else {
+            sunCycleColorHandler = new SunCycleColorHandler(seekBarNightColor.getProgress(),
+                    seekBarNightBrightness.getProgress());
+        }
 
         // Seekbar listener
         SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                updateOverlayServiceIfActive();
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+
+                // Update color handler with new colors
+                if(seekBar.equals(seekBarNightColor)) {
+                    sunCycleColorHandler.setColorIntensity(progress);
+                } else if (seekBar.equals(seekBarNightBrightness)) {
+                    sunCycleColorHandler.setBrightnessIntensity(progress);
+                }
+
+                startOverlayServiceTemporary();
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                startOverlayServiceTemporary();
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                restartOverlayService();
+            }
         };
 
         seekBarNightColor.setOnSeekBarChangeListener(seekBarChangeListener);
@@ -135,15 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
 
-        try {
-            // We create a SunCycle using the sunrise and sunset data
-            Date currentDate = new Date();
-            sunCycle = new SunCycle(currentDate, sunriseSunsetData);
-            updateSunCycleView(sunCycle);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        updateSunCycleView(sunCycle);
 
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
@@ -168,15 +192,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Restarts the overlay service if the active flag is set, otherwise stops the service */
+    private void restartOverlayService() {
+        if(isOverlayServiceActive) {
+            startOverlayService();
+        } else {
+            stopOverlayService();
+        }
+    }
+
     /** Starts the overlay service, if we have permission to do so. Also sends all required info */
-    protected void startOverlayService() {
+    private void startOverlayService() {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
             Intent intent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
-            bundle.putInt("filterColor", SunCycleColor.getOverlayColor(seekBarNightColor.getProgress(),
-                    seekBarNightBrightness.getProgress()));
-            bundle.putParcelable("sunriseSunsetData", Parcels.wrap(sunriseSunsetData));
+            bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColor(sunCycle.getSunPositionHorizontal(), sunCycle));
+            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
+            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
 
             intent.putExtras(bundle);
             startService(intent);
@@ -184,17 +217,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    protected void stopOverlayService() {
+    /** Starts a temporary overlay service with the max color, without setting the active flag */
+    private void startOverlayServiceTemporary() {
+        if(permissionHandler.hasDrawOverlayPermission(this)) {
+            Intent intent = new Intent(this, OverlayService.class);
+            Bundle bundle = new Bundle();
+
+            bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
+            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
+            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
+
+            intent.putExtras(bundle);
+            startService(intent);
+        }
+    }
+
+    private void stopOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
         isOverlayServiceActive = false;
-    }
-
-    /** Starts the overlay service again, only if it was already active */
-    public void updateOverlayServiceIfActive() {
-        if(isOverlayServiceActive) {
-            startOverlayService();
-        }
     }
 
     /**
@@ -263,13 +304,14 @@ public class MainActivity extends AppCompatActivity {
                         // We create a SunCycle using the sunrise and sunset data
                         Date currentDate = new Date();
                         sunCycle = new SunCycle(currentDate, sunriseSunsetDataTemp);
-                        updateSunCycleView(sunCycle);
 
                         System.err.println("sunrise: " + sunriseSunsetData.getCivilTwilightBegin()
                                 + ", sunset: " + sunriseSunsetData.getCivilTwilightEnd());
 
                         sunriseSunsetData = sunriseSunsetDataTemp;
                         hasDummyData = false;
+
+                        updateSunCycleView(sunCycle);
 
                         // Snackbar that informs of the updated location
                         Snackbar.make(lightlyMainView, "Location updated", Snackbar.LENGTH_SHORT).show();
@@ -365,6 +407,7 @@ public class MainActivity extends AppCompatActivity {
         // Store data with GSON
         editor.putString("locationData", gson.toJson(locationData));
         editor.putString("sunriseSunsetData", gson.toJson(sunriseSunsetData));
+        editor.putString("sunCycleColorHandler", gson.toJson(sunCycleColorHandler));
 
         editor.commit();
     }

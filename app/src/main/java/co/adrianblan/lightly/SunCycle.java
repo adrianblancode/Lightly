@@ -1,5 +1,7 @@
 package co.adrianblan.lightly;
 
+import org.parceler.Parcel;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -9,14 +11,17 @@ import java.util.Locale;
 /**
  * A class which models the information for a sun cycle
  */
+@Parcel
 public class SunCycle {
 
     private float sunPositionHorizontal; // Position [0, 1] in x axis that the sun is at
     private float cycleOffsetHorizontal; // Position [0, 1] in x axis that the cycle should be offset
     private float twilightPositionVertical; // Position [0, 1] in y axis that the twilight is at
 
-    float sunrisePositionHorizontal; // Position [0, 1] in x axis that the sunrise is at
-    float sunsetPositionHorizontal; // Position [0, 1] in x axis that the sunset is set at
+    private float sunrisePositionHorizontal; // Position [0, 1] in x axis that the sunrise is at
+    private float sunsetPositionHorizontal; // Position [0, 1] in x axis that the sunset is set at
+
+    public SunCycle() { /*Required empty bean constructor*/ }
 
     public SunCycle (Date current, SunriseSunsetData sunriseSunsetData) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss aa", Locale.US);

@@ -22,6 +22,9 @@ import org.parceler.Parcels;
 public class OverlayService extends Service {
 
     private View overlayView;
+    private int filterColor;
+    private SunCycle sunCycle;
+    private SunCycleColorHandler sunCycleColorHandler;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -31,16 +34,15 @@ public class OverlayService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        int filterColor;
-        SunriseSunsetData sunriseSunsetData;
-
         if(intent != null && intent.getExtras() != null) {
             Bundle bundle = intent.getExtras();
             filterColor = bundle.getInt("filterColor");
-            Parcelable sunriseSunsetDataParcelable = bundle.getParcelable("sunriseSunsetData");
-            sunriseSunsetData = Parcels.unwrap(sunriseSunsetDataParcelable);
-        } else {
-            filterColor = Color.argb(0, 0, 0, 0);
+
+            Parcelable sunCycleParcelable = bundle.getParcelable("sunriseCycle");
+            sunCycle = Parcels.unwrap(sunCycleParcelable);
+
+            Parcelable sunCycleColorHandleParcelable = bundle.getParcelable("sunriseSunsetData");
+            sunCycleColorHandler = Parcels.unwrap(sunCycleColorHandleParcelable);
         }
 
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
