@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.SystemClock;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+
+import org.parceler.Parcels;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -220,12 +224,16 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
-            bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColor(sunCycle.getSunPositionHorizontal(), sunCycle));
+            // We are sending these two objects every time the filter updates, which is bad
+            // But it's only two parcelable POJOs, and premature optimization is the root of all evil
+            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
+            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
+
             intent.putExtras(bundle);
             startService(intent);
             isOverlayServiceActive = true;
 
-            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, 0);
 
             // Repeat the intent in 15 minutes, every 15 minutes
             // Overwrites previous alarms because they have the same ID
@@ -235,18 +243,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Starts a temporary overlay service with the max color, without setting the active flag */
+    /** Starts a temporary overlay service with a temporary color, without setting the active flag */
     private void startOverlayServiceTemporary() {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
             Intent intent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
+            // Sends the strongest color on the cycle
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
             intent.putExtras(bundle);
             startService(intent);
         }
     }
 
+    /** Stops the overlay service */
     private void stopOverlayService() {
         Intent intent = new Intent(this, OverlayService.class);
         stopService(intent);
