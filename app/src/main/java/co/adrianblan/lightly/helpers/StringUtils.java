@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.helpers;
 
 /**
  * Class which contain static String related utilities.

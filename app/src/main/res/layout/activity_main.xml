@@ -88,7 +88,7 @@
                 android:text="@string/sun_cycle_placeholder"
                 android:textSize="16dp"/>
 
-            <co.adrianblan.lightly.SunCycleView
+            <co.adrianblan.lightly.view.SunCycleView
                 android:id="@+id/sun_cycle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

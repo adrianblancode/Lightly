@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -16,6 +16,9 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+
+import co.adrianblan.lightly.R;
+import co.adrianblan.lightly.suncycle.SunCycle;
 
 /**
  * A custom view which shows the cycle of the sun.

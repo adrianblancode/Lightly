@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.data;
 
 import com.google.gson.annotations.SerializedName;
 

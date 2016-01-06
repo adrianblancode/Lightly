@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.service;
 
 import android.app.Service;
 
@@ -15,6 +15,9 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 import org.parceler.Parcels;
+
+import co.adrianblan.lightly.suncycle.SunCycle;
+import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 
 /**
  * A service which contains an overlay which dims the screen.

@@ -1,7 +1,10 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.network;
 
 import com.squareup.okhttp.OkHttpClient;
 
+import co.adrianblan.lightly.helpers.Constants;
+import co.adrianblan.lightly.data.LocationData;
+import co.adrianblan.lightly.data.SunriseSunsetDataWrapper;
 import retrofit.Call;
 import retrofit.GsonConverterFactory;
 import retrofit.Retrofit;

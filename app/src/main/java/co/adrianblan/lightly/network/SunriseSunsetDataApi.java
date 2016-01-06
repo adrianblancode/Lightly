@@ -1,5 +1,6 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.network;
 
+import co.adrianblan.lightly.data.SunriseSunsetDataWrapper;
 import retrofit.Call;
 import retrofit.http.GET;
 import retrofit.http.Query;

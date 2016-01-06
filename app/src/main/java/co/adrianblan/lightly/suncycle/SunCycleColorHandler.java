@@ -1,7 +1,4 @@
-package co.adrianblan.lightly;
-
-import android.animation.ArgbEvaluator;
-import android.graphics.Color;
+package co.adrianblan.lightly.suncycle;
 
 import org.parceler.Parcel;
 

@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.suncycle;
 
 import android.graphics.Color;
 

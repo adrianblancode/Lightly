@@ -1,6 +1,4 @@
-package co.adrianblan.lightly;
-
-import java.util.ArrayList;
+package co.adrianblan.lightly.data;
 
 /**
  * Class which wraps SunriseSunsetData objects for Retrofit

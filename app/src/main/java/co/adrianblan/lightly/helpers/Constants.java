@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.helpers;
 
 /**
  * Created by Adrian on 2015-12-29.

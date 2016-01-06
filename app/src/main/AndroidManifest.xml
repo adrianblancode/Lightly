@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".OverlayService"></service>
+        <service android:name=".service.OverlayService"></service>
     </application>
 
 </manifest>

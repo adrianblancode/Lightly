@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.suncycle;
 
 import org.parceler.Parcel;
 
@@ -7,6 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import co.adrianblan.lightly.helpers.Constants;
+import co.adrianblan.lightly.helpers.StringUtils;
+import co.adrianblan.lightly.data.SunriseSunsetData;
 
 /**
  * A class which models the information for a sun cycle

@@ -1,4 +1,4 @@
-package co.adrianblan.lightly;
+package co.adrianblan.lightly.helpers;
 
 import android.content.Context;
 import android.content.DialogInterface;
