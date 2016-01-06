@@ -1,5 +1,7 @@
 package co.adrianblan.lightly;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -67,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE = 80;
     private static final int SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE = 20;
 
+    private Gson gson;
+    private AlarmManager alarmManager;
+
     private boolean isOverlayServiceActive;
     private boolean hasDummyData;
     private LocationData locationData;
@@ -75,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private SunCycleColorHandler sunCycleColorHandler;
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
-    private Gson gson;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         gson = new Gson();
+        alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 
         // Restore data from SharedPreferences
         SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -229,6 +235,14 @@ public class MainActivity extends AppCompatActivity {
 
             intent.putExtras(bundle);
             startService(intent);
+
+            PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            // Repeat the intent in 15 minutes, every 15 minutes
+            // Overwrites previous alarms because they have the same ID
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                    pendingIntent);
         }
     }
 
