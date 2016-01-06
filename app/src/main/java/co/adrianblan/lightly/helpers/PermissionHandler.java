@@ -13,8 +13,6 @@ import android.support.v7.app.AlertDialog;
  */
 public class PermissionHandler {
 
-    public static final int OVERLAY_PERMISSION_REQUEST_CODE = 1;
-
     /**
      * Returns whether we have the permission to draw overlays.
      *

@@ -20,7 +20,7 @@ public class DataRequestHandler {
     public Call<LocationData> getLocationDataCall() {
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.locationDataUrl)
+                .baseUrl(Constants.LOCATION_DATA_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
@@ -33,7 +33,7 @@ public class DataRequestHandler {
     public Call<SunriseSunsetDataWrapper> getSunriseSunsetDataCall(String latitude, String longitude) {
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.sunriseSunsetDataUrl)
+                .baseUrl(Constants.SUNRISE_SUNSET_DATA_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();

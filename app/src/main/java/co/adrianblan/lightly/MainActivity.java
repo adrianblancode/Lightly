@@ -19,9 +19,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-
-import org.parceler.Parcels;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,6 +31,7 @@ import butterknife.OnClick;
 import co.adrianblan.lightly.data.LocationData;
 import co.adrianblan.lightly.data.SunriseSunsetData;
 import co.adrianblan.lightly.data.SunriseSunsetDataWrapper;
+import co.adrianblan.lightly.helpers.Constants;
 import co.adrianblan.lightly.helpers.PermissionHandler;
 import co.adrianblan.lightly.network.DataRequestHandler;
 import co.adrianblan.lightly.service.OverlayService;
@@ -198,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         // TODO: fix Marshmallow permissions
         if (!permissionHandler.hasDrawOverlayPermission(this)) {
             startActivityForResult(permissionHandler.getDrawOverlayPermissionIntent(this),
-                    permissionHandler.OVERLAY_PERMISSION_REQUEST_CODE);
+                    Constants.OVERLAY_PERMISSION_REQUEST_CODE);
         }
 
         // If the service was active before, start it again
@@ -223,12 +221,17 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = new Bundle();
 
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColor(sunCycle.getSunPositionHorizontal(), sunCycle));
-            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
-            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
-
             intent.putExtras(bundle);
             startService(intent);
             isOverlayServiceActive = true;
+
+            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            // Repeat the intent in 15 minutes, every 15 minutes
+            // Overwrites previous alarms because they have the same ID
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                    pendingIntent);
         }
     }
 
@@ -239,19 +242,8 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = new Bundle();
 
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
-            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
-            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
-
             intent.putExtras(bundle);
             startService(intent);
-
-            PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            // Repeat the intent in 15 minutes, every 15 minutes
-            // Overwrites previous alarms because they have the same ID
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-                    AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                    pendingIntent);
         }
     }
 
@@ -394,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PermissionHandler.OVERLAY_PERMISSION_REQUEST_CODE) {
+        if (requestCode == Constants.OVERLAY_PERMISSION_REQUEST_CODE) {
             if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
                 /**

@@ -1,11 +1,13 @@
 package co.adrianblan.lightly.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 
 import android.content.Context;
 import android.content.Intent;
 
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -16,6 +18,9 @@ import android.widget.LinearLayout;
 
 import org.parceler.Parcels;
 
+import co.adrianblan.lightly.MainActivity;
+import co.adrianblan.lightly.R;
+import co.adrianblan.lightly.helpers.Constants;
 import co.adrianblan.lightly.suncycle.SunCycle;
 import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 
@@ -26,8 +31,6 @@ public class OverlayService extends Service {
 
     private View overlayView;
     private int filterColor;
-    private SunCycle sunCycle;
-    private SunCycleColorHandler sunCycleColorHandler;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -40,12 +43,6 @@ public class OverlayService extends Service {
         if(intent != null && intent.getExtras() != null) {
             Bundle bundle = intent.getExtras();
             filterColor = bundle.getInt("filterColor");
-
-            Parcelable sunCycleParcelable = bundle.getParcelable("sunriseCycle");
-            sunCycle = Parcels.unwrap(sunCycleParcelable);
-
-            Parcelable sunCycleColorHandleParcelable = bundle.getParcelable("sunriseSunsetData");
-            sunCycleColorHandler = Parcels.unwrap(sunCycleColorHandleParcelable);
         }
 
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
@@ -75,18 +72,25 @@ public class OverlayService extends Service {
         // Now that our view is added, we can simply change it's color
         overlayView.setBackgroundColor(filterColor);
 
-        return START_STICKY;
-    }
+        // Intent for opening the app
+        PendingIntent notifyPendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                Constants.ACTIVITY_MAIN_NOTIFICATION_REQUEST_CODE, new Intent(this, MainActivity.class), 0);
 
-    /**
-     * Takes the intensity as a parameter, and returns a color filter.
-     *
-     * @param intensity the intensity from 0 to 100
-     * @return the background color which is applied as a filter to the screen
-     */
-    private int getBackgroundColor(int intensity) {
-        int j = 255 - (int) Math.round(255D * Math.exp(4D * ((double) intensity / 100D) - 4D));
-        return Color.argb(j, 255, 170, 84);
+        // Persistent notification that is displayed on lowest priority whenever app is enabled
+        Notification.Builder builder = new Notification.Builder(getApplicationContext());
+        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setContentTitle("Lightly");
+        builder.setContentText("Running, press to open");
+        builder.setContentIntent(notifyPendingIntent);
+        builder.setOngoing(true);
+        builder.setPriority(Notification.PRIORITY_MIN);
+        Notification notification = builder.build();
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(0, notification);
+
+        return START_STICKY;
     }
 
     @Override
@@ -96,5 +100,10 @@ public class OverlayService extends Service {
             WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             windowManager.removeView(overlayView);
         }
+
+        // Whenever the service is terminated, also destroy the notification
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
     }
 }

@@ -67,12 +67,12 @@ public class SunCycle {
 
     /** Takes a position [0, 1] and returns the corresponding height [-1, 1] in the sun cycle */
     public float getVerticalPosition(float positionHorizontal) {
-        return (float) Math.sin(positionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
+        return (float) Math.sin(positionHorizontal * Constants.TAU - cycleOffsetHorizontal * Constants.TAU);
     }
 
     /** Takes a position [0, 1] and returns the corresponding height [-1, 1] in the sun cycle */
     public static float getVerticalPosition(float positionHorizontal, float cycleOffsetHorizontal) {
-        return (float) Math.sin(positionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
+        return (float) Math.sin(positionHorizontal * Constants.TAU - cycleOffsetHorizontal * Constants.TAU);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */
@@ -94,7 +94,7 @@ public class SunCycle {
 
     /** Takes an angle in radians, and converts it to an abs value with bounds [0, 1] */
     private double getScaledRadian(double radian) {
-        return ((radian + Constants.tau) % Constants.tau) / Constants.tau;
+        return ((radian + Constants.TAU) % Constants.TAU) / Constants.TAU;
     }
 
     /** Takes a position [0, 1] and converts it to a string of the time (HH:MM) */
