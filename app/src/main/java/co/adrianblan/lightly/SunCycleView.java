@@ -112,22 +112,20 @@ public class SunCycleView extends View {
      */
     private void calculatePath() {
 
-        double cycleOffsetRadians = cycleOffsetHorizontal * Constants.tau;
-
         System.err.println("PO: " + cycleOffsetHorizontal + ", TDP: " + twilightPositionVertical + ", SO: " + sunPositionHorizontal);
 
         sunPath.reset();
 
         // Initial point of the path
-        sunPath.moveTo(0, (float) -Math.sin(-cycleOffsetRadians) * PATH_HEIGHT_SCALE * canvasHeight / 2);
+        sunPath.moveTo(0, -SunCycle.getVerticalPosition(0f, cycleOffsetHorizontal) * PATH_HEIGHT_SCALE * canvasHeight / 2);
 
         for(int i = 0; i <= PATH_ITERATIONS; i++) {
 
             float percent = (float) i / PATH_ITERATIONS;
 
-            double pathY = -Math.sin(percent * Constants.tau - cycleOffsetRadians) * PATH_HEIGHT_SCALE;
+            float pathY = -SunCycle.getVerticalPosition(percent, cycleOffsetHorizontal) * PATH_HEIGHT_SCALE * canvasHeight / 2;
 
-            sunPath.lineTo(percent * canvasWidth, (float) pathY * canvasHeight / 2);
+            sunPath.lineTo(percent * canvasWidth, pathY );
         }
     }
 
@@ -234,22 +232,12 @@ public class SunCycleView extends View {
         canvas.drawLine(0, twilightDividerPositionScaled, canvasWidth,
                 twilightDividerPositionScaled, twilightDividerPaint);
 
-        int dividerPointHeight = 20;
-
-        canvas.drawLine(canvasWidth / 2f, twilightDividerPositionScaled - dividerPointHeight / 2,
-                canvasWidth / 2f, twilightDividerPositionScaled + dividerPointHeight / 2,
-                twilightPointPaint);
-
-        /**
-        canvas.drawCircle(canvasWidth / 2f, twilightDividerPositionScaled * (canvasHeight / 2f), 5f,
-                twilightDividerPaint);
-         */
-
         // Draws the path of the sun
         canvas.drawPath(sunPath, sunPathPaint);
 
         // Draws the sun
-        double sunY = -Math.sin(sunPositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau) * PATH_HEIGHT_SCALE * canvasHeight / 2f;
+        float sunY = -SunCycle.getVerticalPosition(sunPositionHorizontal, cycleOffsetHorizontal)
+                * PATH_HEIGHT_SCALE * canvasHeight / 2f;
 
         if(!sunDrawables.isEmpty()) {
 
@@ -261,9 +249,11 @@ public class SunCycleView extends View {
             ColorFilter sunIconColorFilter = new PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_IN);
             sunCirclePaint.setColorFilter(sunIconColorFilter);
 
-            canvas.drawBitmap(sunBitmap, sunPositionHorizontal * canvasWidth - (sunBitmap.getWidth() / 2f), (float) sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
+            // Draw the sun drawable on the cycle
+            canvas.drawBitmap(sunBitmap, sunPositionHorizontal * canvasWidth - (sunBitmap.getWidth() / 2f), sunY - (sunBitmap.getHeight() / 2f), sunCirclePaint);
         } else {
-            canvas.drawCircle(sunPositionHorizontal * canvasWidth, (float) sunY, 22f, sunCirclePaint);
+            // If no drawable, then just draw a circle
+            canvas.drawCircle(sunPositionHorizontal * canvasWidth, sunY, 22f, sunCirclePaint);
         }
 
         canvas.restore();

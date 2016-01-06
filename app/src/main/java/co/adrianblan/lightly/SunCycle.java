@@ -25,12 +25,12 @@ public class SunCycle {
         Date sunset = simpleDateFormat.parse(sunriseSunsetData.getCivilTwilightEnd());
 
         initializeSunCycle(sunrise, sunset);
-        updateSunPosition(current);
+        updateSunPositionHorizontal(current);
     }
 
     public SunCycle (Date current, Date sunrise, Date sunset) {
         initializeSunCycle(sunrise, sunset);
-        updateSunPosition(current);
+        updateSunPositionHorizontal(current);
     }
 
     /**
@@ -53,11 +53,21 @@ public class SunCycle {
         cycleOffsetHorizontal = ((solarNoonHorizontalPosition - 0.25f) + 1f) % 1f;
 
         // Calculate at what scaled height the twilight is at
-        twilightPositionVertical = (float) Math.sin(sunrisePositionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
+        twilightPositionVertical = getVerticalPosition(sunrisePositionHorizontal);
+    }
+
+    /** Takes a position [0, 1] and returns the corresponding height [-1, 1] in the sun cycle */
+    public float getVerticalPosition(float positionHorizontal) {
+        return (float) Math.sin(positionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
+    }
+
+    /** Takes a position [0, 1] and returns the corresponding height [-1, 1] in the sun cycle */
+    public static float getVerticalPosition(float positionHorizontal, float cycleOffsetHorizontal) {
+        return (float) Math.sin(positionHorizontal * Constants.tau - cycleOffsetHorizontal * Constants.tau);
     }
 
     /** Calculates the position of the sun for the current time, given the initialized sun cycle */
-    public void updateSunPosition(Date current) {
+    public void updateSunPositionHorizontal(Date current) {
         sunPositionHorizontal = getScaledTime(current);
     }
 

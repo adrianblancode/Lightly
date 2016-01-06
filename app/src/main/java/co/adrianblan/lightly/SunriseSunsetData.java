@@ -1,18 +1,30 @@
 package co.adrianblan.lightly;
 
+import com.google.gson.annotations.SerializedName;
+
 import org.parceler.Parcel;
 
 /**
  * Stores the data of times for sunrise and sunset.
  *
- * All data is stored in the format 'hh:mm:ss aa' in UTC time.
+ * All data is stored in the format 'hh:mm:ss aa' in UTC time. We are getting the data from
+ * api.sunrise-sunset.org and thus the serialized names have to conform to their API.
  */
 @Parcel
 public class SunriseSunsetData {
-    private String civil_twilight_begin;
-    private String civil_twilight_end;
+
+    @SerializedName("civil_twilight_begin")
+    private String civilTwilightBegin;
+
+    @SerializedName("civil_twilight_end")
+    private String civilTwilightEnd;
 
     public SunriseSunsetData() { /*Required empty bean constructor*/ }
+
+    public SunriseSunsetData(String civilTwilightBegin, String civilTwilightEnd) {
+        this.civilTwilightBegin = civilTwilightBegin;
+        this.civilTwilightEnd = civilTwilightEnd;
+    }
 
     /** Returns a SunriseSunsetData object that is mocked to a reasonable sunrise and sunset */
     public static SunriseSunsetData getDummySunriseSunsetData() {
@@ -25,22 +37,22 @@ public class SunriseSunsetData {
 
     /** Returns whether all the member variables in the object are not empty */
     public boolean isValid() {
-        return (!civil_twilight_begin.isEmpty() && !civil_twilight_end.isEmpty());
+        return (!civilTwilightBegin.isEmpty() && !civilTwilightEnd.isEmpty());
     }
 
     public String getCivilTwilightBegin() {
-        return civil_twilight_begin;
+        return civilTwilightBegin;
     }
 
-    public void setCivilTwilightBegin(String civil_twilight_begin) {
-        this.civil_twilight_begin = civil_twilight_begin;
+    public void setCivilTwilightBegin(String civilTwilightBegin) {
+        this.civilTwilightBegin = civilTwilightBegin;
     }
 
     public String getCivilTwilightEnd() {
-        return civil_twilight_end;
+        return civilTwilightEnd;
     }
 
-    public void setCivilTwilightEnd(String civil_twilight_end) {
-        this.civil_twilight_end = civil_twilight_end;
+    public void setCivilTwilightEnd(String civilTwilightEnd) {
+        this.civilTwilightEnd = civilTwilightEnd;
     }
 }

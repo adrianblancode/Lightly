@@ -9,9 +9,12 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+
+import org.parceler.Parcels;
 
 /**
  * A service which contains an overlay which dims the screen.
@@ -28,10 +31,16 @@ public class OverlayService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        int filterColor = Color.argb(0, 0, 0, 0);
+        int filterColor;
+        SunriseSunsetData sunriseSunsetData;
 
-        if(intent != null) {
-            filterColor = intent.getIntExtra("filterColor", Color.argb(0, 0, 0, 0));
+        if(intent != null && intent.getExtras() != null) {
+            Bundle bundle = intent.getExtras();
+            filterColor = bundle.getInt("filterColor");
+            Parcelable sunriseSunsetDataParcelable = bundle.getParcelable("sunriseSunsetData");
+            sunriseSunsetData = Parcels.unwrap(sunriseSunsetDataParcelable);
+        } else {
+            filterColor = Color.argb(0, 0, 0, 0);
         }
 
         WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);

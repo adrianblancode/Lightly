@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -123,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         };
 
-        sunCycleColor = new SunCycleColor();
-
         seekBarNightColor.setOnSeekBarChangeListener(seekBarChangeListener);
         seekBarNightBrightness.setOnSeekBarChangeListener(seekBarChangeListener);
 
@@ -175,8 +172,13 @@ public class MainActivity extends AppCompatActivity {
     protected void startOverlayService() {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
             Intent intent = new Intent(this, OverlayService.class);
-            intent.putExtra("filterColor", sunCycleColor.getOverlayColor(seekBarNightColor.getProgress(),
+            Bundle bundle = new Bundle();
+
+            bundle.putInt("filterColor", SunCycleColor.getOverlayColor(seekBarNightColor.getProgress(),
                     seekBarNightBrightness.getProgress()));
+            bundle.putParcelable("sunriseSunsetData", Parcels.wrap(sunriseSunsetData));
+
+            intent.putExtras(bundle);
             startService(intent);
             isOverlayServiceActive = true;
         }
@@ -216,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
                     locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
 
                     // As the request for location was successful, we now request for sun cycle data
-                    requestSunCycleData(locationData.getLat(), locationData.getLon());
+                    requestSunCycleData(locationData.getLatitude(), locationData.getLongitude());
                 } else {
                     System.err.println("Error: Location data is null");
                 }
@@ -254,36 +256,36 @@ public class MainActivity extends AppCompatActivity {
                 SunriseSunsetDataWrapper sunriseSunsetDataWrapper = response.body();
 
                 // Check that our data was successfully fetched
-                if(sunriseSunsetDataWrapper != null) {
+                if(sunriseSunsetDataWrapper != null && sunriseSunsetDataWrapper.getResults().isValid()) {
                     SunriseSunsetData sunriseSunsetDataTemp = sunriseSunsetDataWrapper.getResults();
 
-                    if (sunriseSunsetDataTemp.isValid()) {
-                        try {
-                            // We create a SunCycle using the sunrise and sunset data
-                            Date currentDate = new Date();
-                            sunCycle = new SunCycle(currentDate, sunriseSunsetDataTemp);
-                            updateSunCycleView(sunCycle);
+                    try {
+                        // We create a SunCycle using the sunrise and sunset data
+                        Date currentDate = new Date();
+                        sunCycle = new SunCycle(currentDate, sunriseSunsetDataTemp);
+                        updateSunCycleView(sunCycle);
 
-                            sunriseSunsetData = sunriseSunsetDataTemp;
-                            hasDummyData = false;
+                        System.err.println("sunrise: " + sunriseSunsetData.getCivilTwilightBegin()
+                                + ", sunset: " + sunriseSunsetData.getCivilTwilightEnd());
 
-                            // Snackbar that informs of the updated location
-                            Snackbar.make(lightlyMainView, "Location updated", Snackbar.LENGTH_SHORT).show();
+                        sunriseSunsetData = sunriseSunsetDataTemp;
+                        hasDummyData = false;
 
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        System.err.println("Error: sunrise and sunset are null");
+                        // Snackbar that informs of the updated location
+                        Snackbar.make(lightlyMainView, "Location updated", Snackbar.LENGTH_SHORT).show();
+
+                    } catch (ParseException e) {
+                        System.err.println("Error parsing sunrise and and sunset data in SunCycle");
+                        e.printStackTrace();
                     }
                 } else {
-                    System.err.println("Error: sunrise sunset request returned null");
+                    System.err.println("Error: sunrise sunset data is null");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                System.err.println("Error: Failed to get sunrise and sunset data" + t.toString());
+                System.err.println("Error: Failed to request sunrise and sunset data.\n" + t.toString());
 
                 // Snackbar where user can retry fetching data
                 Snackbar.make(lightlyMainView, "Oops! Unable to connect to server", Snackbar.LENGTH_LONG)
