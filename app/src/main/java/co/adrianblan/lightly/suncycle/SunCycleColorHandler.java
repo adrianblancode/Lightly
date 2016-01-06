@@ -15,15 +15,14 @@ public class SunCycleColorHandler {
     private static final SunCycleColorWrapper colorFilterBase = new SunCycleColorWrapper(0, 255, 170, 84);
     private static final SunCycleColorWrapper brightnessFilterBase = new SunCycleColorWrapper(0, 0, 0, 0);
 
-    // TODO change name?
-    private int colorIntensity;
-    private int brightnessIntensity;
+    private int colorFilterIntensity;
+    private int brightnessFilterIntensity;
 
     public SunCycleColorHandler() { /*Required empty bean constructor*/ }
 
-    public SunCycleColorHandler(int colorIntensity, int brightnessIntensity) {
-        this.colorIntensity = colorIntensity;
-        this.brightnessIntensity = brightnessIntensity;
+    public SunCycleColorHandler(int colorFilterIntensity, int brightnessFilterIntensity) {
+        this.colorFilterIntensity = colorFilterIntensity;
+        this.brightnessFilterIntensity = brightnessFilterIntensity;
     }
 
     /** Gets the maximum possible prominent color */
@@ -54,18 +53,31 @@ public class SunCycleColorHandler {
         return sunCycleColorWrapper.getColor();
     }
 
+    /** Returns a wrapper for the color of the color filter */
+    public SunCycleColorWrapper getColorFilterWrapper() {
+        SunCycleColorWrapper colorFilterWrapper = new SunCycleColorWrapper(colorFilterBase);
+        colorFilterWrapper.setAlpha(200 - (int) 2.0 * colorFilterIntensity);
+        
+        return colorFilterWrapper;
+    }
+
+    /** Returns a wrapper for the color of the brightness filter */
+    public SunCycleColorWrapper getBrightnessFilterWrapper() {
+        SunCycleColorWrapper brightnessFilterWrapper = new SunCycleColorWrapper(brightnessFilterBase);
+        brightnessFilterWrapper.setAlpha(200 - (int) 2.0 * brightnessFilterIntensity);
+
+        return brightnessFilterWrapper;
+    }
+
     /** Returns the interpolated color of the temperature and the brightness based on their intensities */
     private SunCycleColorWrapper getOverlayColor() {
 
-        SunCycleColorWrapper color1 = new SunCycleColorWrapper(colorFilterBase);
-        color1.setAlpha(200 - (int) 2.0 * colorIntensity);
+        SunCycleColorWrapper colorFilterWrapper = getColorFilterWrapper();
+        SunCycleColorWrapper brightnessFilterWrapper = getBrightnessFilterWrapper();
 
-        SunCycleColorWrapper color2 = new SunCycleColorWrapper(brightnessFilterBase);
-        color2.setAlpha(200 - (int) 2.00 * brightnessIntensity);
-
-        return interpolate(color1, color2, 100 - colorIntensity, 300 - 3 * brightnessIntensity);
+        return interpolate(colorFilterWrapper, brightnessFilterWrapper, 100 - colorFilterIntensity, 300 - 3 * brightnessFilterIntensity);
     }
-
+    
     /** Interpolate between two colors, the second one is scaled by a priority */
     public static int interpolateWithPriority(int backgroundColor, int priorityColor, int priorityScale) {
         SunCycleColorWrapper backgroundColorWrapper = new SunCycleColorWrapper(backgroundColor);
@@ -92,19 +104,19 @@ public class SunCycleColorHandler {
         return new SunCycleColorWrapper(a, r, g, b);
     }
 
-    public int getColorIntensity() {
-        return colorIntensity;
+    public int getColorFilterIntensity() {
+        return colorFilterIntensity;
     }
 
-    public void setColorIntensity(int colorIntensity) {
-        this.colorIntensity = colorIntensity;
+    public void setColorFilterIntensity(int colorFilterIntensity) {
+        this.colorFilterIntensity = colorFilterIntensity;
     }
 
-    public int getBrightnessIntensity() {
-        return brightnessIntensity;
+    public int getBrightnessFilterIntensity() {
+        return brightnessFilterIntensity;
     }
 
-    public void setBrightnessIntensity(int brightnessIntensity) {
-        this.brightnessIntensity = brightnessIntensity;
+    public void setBrightnessFilterIntensity(int brightnessFilterIntensity) {
+        this.brightnessFilterIntensity = brightnessFilterIntensity;
     }
 }

@@ -8,12 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.SystemClock;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -56,8 +56,12 @@ public class MainActivity extends AppCompatActivity {
     Switch switchEnabled;
     @Bind(R.id.seekbar_night_color)
     SeekBar seekBarNightColor;
+    @Bind(R.id.night_color_circle)
+    ImageView nightColorCircle;
     @Bind(R.id.seekbar_night_brightness)
     SeekBar seekBarNightBrightness;
+    @Bind(R.id.night_brightness_circle)
+    ImageView nightBrightnessCircle;
 
     @Bind(R.id.lightly_main)
     LinearLayout lightlyMainView;
@@ -152,9 +156,9 @@ public class MainActivity extends AppCompatActivity {
 
                 // Update color handler with new colors
                 if(seekBar.equals(seekBarNightColor)) {
-                    sunCycleColorHandler.setColorIntensity(progress);
+                    sunCycleColorHandler.setColorFilterIntensity(progress);
                 } else if (seekBar.equals(seekBarNightBrightness)) {
-                    sunCycleColorHandler.setBrightnessIntensity(progress);
+                    sunCycleColorHandler.setBrightnessFilterIntensity(progress);
                 }
 
                 startOverlayServiceTemporary();
@@ -176,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         seekBarNightBrightness.setOnSeekBarChangeListener(seekBarChangeListener);
 
         // Add sun drawables that the SunCycle will draw over the cycle
-        ArrayList<Drawable> sunDrawables = new ArrayList<Drawable>();
+        ArrayList<Drawable> sunDrawables = new ArrayList<>();
         sunDrawables.add(brightnessMediumInvertedDrawable);
         sunDrawables.add(brightnessHighDrawable);
         sunDrawables.add(brightnessMediumDrawable);
@@ -369,6 +373,9 @@ public class MainActivity extends AppCompatActivity {
 
     /** Takes a SunCycle, and updates the view according to the data inside */
     private void updateSunCycleView(SunCycle sunCycle) {
+        nightColorCircle.setColorFilter(sunCycleColorHandler.getColorFilterWrapper().getColor());
+        nightBrightnessCircle.setColorFilter(sunCycleColorHandler.getBrightnessFilterWrapper().getColor());
+
         sunCycleView.setNightColor(sunCycleColorHandler.getOverlayColorMax());
         sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
         sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
@@ -437,6 +444,6 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("sunriseSunsetData", gson.toJson(sunriseSunsetData));
         editor.putString("sunCycleColorHandler", gson.toJson(sunCycleColorHandler));
 
-        editor.commit();
+        editor.apply();
     }
 }
