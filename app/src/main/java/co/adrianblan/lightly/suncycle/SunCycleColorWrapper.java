@@ -9,16 +9,23 @@ import org.parceler.Parcel;
  */
 @Parcel
 public class SunCycleColorWrapper {
-    int alpha;
-    int red;
-    int green;
-    int blue;
+    private int alpha;
+    private int red;
+    private int green;
+    private int blue;
 
     public SunCycleColorWrapper() {
         this.alpha = 0;
         this.red = 0;
         this.blue = 0;
         this.green = 0;
+    }
+
+    public SunCycleColorWrapper(int color) {
+        this.alpha = Color.alpha(color);
+        this.red = Color.red(color);
+        this.blue = Color.blue(color);
+        this.green = Color.green(color);
     }
 
     public SunCycleColorWrapper(int alpha, int red, int green, int blue) {

@@ -90,6 +90,7 @@
 
             <co.adrianblan.lightly.view.SunCycleView
                 android:id="@+id/sun_cycle"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 suncycleview:primaryColor="@color/accent_material_dark"

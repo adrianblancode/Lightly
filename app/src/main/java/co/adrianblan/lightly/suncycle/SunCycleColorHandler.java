@@ -32,7 +32,8 @@ public class SunCycleColorHandler {
     }
 
     /** Takes a position [0, 1], compares it to twilight in a SunCycle and gives the appropriate color */
-    public int getOverlayColor (float positionHorizontal, SunCycle sunCycle) {
+    public int getOverlayColor (SunCycle sunCycle) {
+        float positionHorizontal = sunCycle.getSunPositionHorizontal();
         float sunrise = sunCycle.getSunrisePositionHorizontal();
         float sunset = sunCycle.getSunsetPositionHorizontal();
 
@@ -62,14 +63,25 @@ public class SunCycleColorHandler {
         SunCycleColorWrapper color2 = new SunCycleColorWrapper(brightnessFilterBase);
         color2.setAlpha(200 - (int) 2.00 * brightnessIntensity);
 
-        return interpolate(color1, color2, 100 - colorIntensity, 100 - brightnessIntensity);
+        return interpolate(color1, color2, 100 - colorIntensity, 300 - 3 * brightnessIntensity);
+    }
+
+    /** Interpolate between two colors, the second one is scaled by a priority */
+    public static int interpolateWithPriority(int backgroundColor, int priorityColor, int priorityScale) {
+        SunCycleColorWrapper backgroundColorWrapper = new SunCycleColorWrapper(backgroundColor);
+        SunCycleColorWrapper priorityColorWrapper = new SunCycleColorWrapper(priorityColor);
+
+        SunCycleColorWrapper interpolated = interpolate(backgroundColorWrapper, priorityColorWrapper,
+                255 - priorityColorWrapper.getAlpha(), priorityColorWrapper.getAlpha() * priorityScale);
+        interpolated.setAlpha(255);
+        return interpolated.getColor();
     }
 
     /** Magically interpolates two colors based on their intensities */
     private static SunCycleColorWrapper interpolate (SunCycleColorWrapper color1, SunCycleColorWrapper color2,
                                                      int colorIntensity, int brightnessIntensity) {
 
-        float colorIntensityFraction = (float) colorIntensity / (float) ((colorIntensity + brightnessIntensity) * 2);
+        float colorIntensityFraction = (float) colorIntensity / (float) (colorIntensity + brightnessIntensity);
         float brightnessIntensityFraction = 1.0f - colorIntensityFraction;
 
         int a = (int) Math.max((color1.getAlpha() + color1.getAlpha()) / 2.2, Math.max(color1.getAlpha(), color2.getAlpha()) * 0.9);

@@ -62,7 +62,7 @@ public class OverlayService extends Service {
                 sunCycleColorHandler = Parcels.unwrap(bundle.getParcelable("sunCycleColorHandler"));
 
                 sunCycle.updateSunPositionHorizontal(new Date());
-                filterColor = sunCycleColorHandler.getOverlayColor(sunCycle.getSunPositionHorizontal(), sunCycle);
+                filterColor = sunCycleColorHandler.getOverlayColor(sunCycle);
 
             } else {
                 throw new IllegalArgumentException("Intent sent to overlay service with missing extras");

@@ -158,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 startOverlayServiceTemporary();
+                updateSunCycleView(sunCycle);
             }
 
             @Override
@@ -368,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Takes a SunCycle, and updates the view according to the data inside */
     private void updateSunCycleView(SunCycle sunCycle) {
+        sunCycleView.setNightColor(sunCycleColorHandler.getOverlayColorMax());
         sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
         sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
         sunCycleView.setTwilightPositionVertical(sunCycle.getTwilightPositionVertical());
@@ -422,6 +424,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
+        // Save our data when lifecycle is ending
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
 
         editor.putBoolean("isOverlayServiceActive", isOverlayServiceActive);

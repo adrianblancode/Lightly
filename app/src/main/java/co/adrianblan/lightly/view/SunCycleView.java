@@ -6,10 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 
 import co.adrianblan.lightly.R;
 import co.adrianblan.lightly.suncycle.SunCycle;
+import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 
 /**
  * A custom view which shows the cycle of the sun.
@@ -37,6 +40,7 @@ public class SunCycleView extends View {
     private float sunPositionHorizontal;
     private float cycleOffsetHorizontal;
     private float twilightPositionVertical;
+    private int nightColor;
 
     private int canvasWidth;
     private int canvasHeight;
@@ -79,6 +83,7 @@ public class SunCycleView extends View {
      */
     private void init() {
 
+        nightColor = accentColor;
         sunPositionHorizontal = 0.5f;
         cycleOffsetHorizontal = 0.25f;
         twilightPositionVertical = 0.5f;
@@ -115,7 +120,8 @@ public class SunCycleView extends View {
      */
     private void calculatePath() {
 
-        System.err.println("PO: " + cycleOffsetHorizontal + ", TDP: " + twilightPositionVertical + ", SO: " + sunPositionHorizontal);
+        sunPathPaint.setShader(new LinearGradient(0, PATH_HEIGHT_SCALE * -getHeight() / 2, 0, PATH_HEIGHT_SCALE * getHeight() / 2, accentColor,
+                SunCycleColorHandler.interpolateWithPriority(accentColor, nightColor, 5), Shader.TileMode.MIRROR));
 
         sunPath.reset();
 
@@ -197,6 +203,10 @@ public class SunCycleView extends View {
 
     public void setTwilightPositionVertical(float twilightPositionVertical) {
         this.twilightPositionVertical = twilightPositionVertical;
+    }
+
+    public void setNightColor(int nightColor) {
+        this.nightColor = nightColor;
     }
 
     @Override
