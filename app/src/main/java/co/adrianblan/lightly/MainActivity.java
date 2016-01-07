@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
     private Intent nonTemporaryOverlayIntent;
+    private Intent temporaryOverlayIntent;
     private PendingIntent pendingOverlayIntent;
 
 
@@ -205,6 +206,9 @@ public class MainActivity extends AppCompatActivity {
         if(hasDummyData) {
             requestLocationData();
         }
+
+        nonTemporaryOverlayIntent = new Intent(this, OverlayService.class);
+        temporaryOverlayIntent = new Intent(this, OverlayService.class);
 
         // If the service was active before, start it again
         if (isOverlayServiceActive) {
@@ -355,9 +359,8 @@ public class MainActivity extends AppCompatActivity {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
 
             cancelPendingOverlayIntents();
-            stopOverlayService();
+            //stopOverlayService();
 
-            nonTemporaryOverlayIntent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
             // We are sending these two objects every time the filter updates, which is bad
@@ -371,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
             isOverlayServiceActive = true;
 
             pendingOverlayIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE,
-                    nonTemporaryOverlayIntent, 0);
+                    nonTemporaryOverlayIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Repeat the intent in 15 minutes, every 15 minutes
             // Overwrites previous alarms because they have the same ID
@@ -391,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
             // Sends the strongest color on the cycle
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
             temporaryOverlayIntent.putExtras(bundle);
-            startService(nonTemporaryOverlayIntent);
+            startService(temporaryOverlayIntent);
         }
     }
 
