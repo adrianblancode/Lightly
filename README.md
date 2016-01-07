@@ -3,6 +3,8 @@ Lightly is a night mode / screen dimmer app for Android. It senses where in the 
 
 Lightly uses ButterKnife for view injection, Retrofit to get data from ip-api.com and sunrise-sunset.org, and Parceler together with Gson for easy serialization of objects.
 
+[![Get it on Google Play!](https://developer.android.com/images/brand/en_generic_rgb_wo_60.png)](https://play.google.com/store/apps/details?id=co.adrianblan.lightly)
+
 ## Images
 
 ![Lightly image](http://i.imgur.com/dYPtXGy.jpg)
