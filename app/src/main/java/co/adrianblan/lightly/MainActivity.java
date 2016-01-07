@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
                  * The user has denied the permission request.
                  * Display an alert dialog informing them of their consequences.
                  */
-                if (resultCode == RESULT_CANCELED) {
+                if (!permissionHandler.hasDrawOverlayPermission(getApplicationContext())) {
 
                     new AlertDialog.Builder(this)
                             .setTitle(R.string.permission_denied_title)
