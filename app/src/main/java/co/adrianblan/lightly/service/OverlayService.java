@@ -10,6 +10,7 @@ import android.content.Intent;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -39,9 +40,10 @@ import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 public class OverlayService extends Service {
 
     private View overlayView;
-    private int filterColor;
+    private int filterColor = Color.TRANSPARENT;
     private SunCycle sunCycle;
     private SunCycleColorHandler sunCycleColorHandler;
+    private boolean isTemporaryOverlay;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -49,6 +51,9 @@ public class OverlayService extends Service {
         System.err.println("Service started!");
 
         if(intent != null && intent.getExtras() != null) {
+
+            System.err.println("Service initialized!");
+
             Bundle bundle = intent.getExtras();
             Set<String> bundleKeyset = bundle.keySet();
 
@@ -56,6 +61,7 @@ public class OverlayService extends Service {
 
                 // If we get filtercolor directly, use it
                 filterColor = bundle.getInt("filterColor");
+                isTemporaryOverlay = true;
 
             } else if (bundleKeyset.contains("sunCycle") && bundleKeyset.contains("sunCycleColorHandler")) {
 
@@ -65,10 +71,13 @@ public class OverlayService extends Service {
 
                 sunCycle.updateSunPositionHorizontal(new Date());
                 filterColor = sunCycleColorHandler.getOverlayColor(sunCycle);
+                isTemporaryOverlay = false;
 
             } else {
                 throw new IllegalArgumentException("Intent sent to overlay service with missing extras");
             }
+        } else {
+            System.err.println("Empty intent!");
         }
 
         // If the overlay is null, we instansiate everything
@@ -119,15 +128,22 @@ public class OverlayService extends Service {
         // Now that our view is added, we can simply change it's color
         overlayView.setBackgroundColor(filterColor);
 
-        return START_STICKY;
+        // If it's not a temporary overlay we sticky it, but if it's temporary then just fire
+        if(!isTemporaryOverlay) {
+            return START_STICKY;
+        } else {
+            return START_NOT_STICKY;
+        }
     }
 
     @Override
     public void onDestroy() {
+        System.err.println("Service stopped!");
         super.onDestroy();
         if(overlayView != null){
             WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             windowManager.removeView(overlayView);
+            System.err.println("Overlay removed");
         }
 
         // Whenever the service is terminated, also destroy the notification

@@ -17,7 +17,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -97,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
     private SunCycleColorHandler sunCycleColorHandler;
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
+    private Intent nonTemporaryOverlayIntent;
+    private PendingIntent pendingOverlayIntent;
 
 
     @Override
@@ -153,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         if(sunCycleColorHandlerJson != null) {
             sunCycleColorHandler = gson.fromJson(sunCycleColorHandlerJson, SunCycleColorHandler.class);
         } else {
+            System.err.println("No sun cycle color handler saved.");
             sunCycleColorHandler = new SunCycleColorHandler(seekBarNightColor.getProgress(),
                     seekBarNightBrightness.getProgress());
         }
@@ -351,7 +353,11 @@ public class MainActivity extends AppCompatActivity {
     /** Starts the overlay service, if we have permission to do so. Also sends all required info */
     private void startOverlayService() {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
-            Intent intent = new Intent(this, OverlayService.class);
+
+            cancelPendingOverlayIntents();
+            stopOverlayService();
+
+            nonTemporaryOverlayIntent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
             // We are sending these two objects every time the filter updates, which is bad
@@ -359,38 +365,52 @@ public class MainActivity extends AppCompatActivity {
             bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
             bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
 
-            intent.putExtras(bundle);
-            startService(intent);
+            nonTemporaryOverlayIntent.putExtras(bundle);
+            startService(nonTemporaryOverlayIntent);
+
             isOverlayServiceActive = true;
 
-            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, 0);
+            pendingOverlayIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE,
+                    nonTemporaryOverlayIntent, 0);
 
             // Repeat the intent in 15 minutes, every 15 minutes
             // Overwrites previous alarms because they have the same ID
             alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
                     AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                    pendingIntent);
+                    pendingOverlayIntent);
         }
     }
 
     /** Starts a temporary overlay service with a temporary color, without setting the active flag */
     private void startOverlayServiceTemporary() {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
-            Intent intent = new Intent(this, OverlayService.class);
+
+            Intent temporaryOverlayIntent = new Intent(this, OverlayService.class);
             Bundle bundle = new Bundle();
 
             // Sends the strongest color on the cycle
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
-            intent.putExtras(bundle);
-            startService(intent);
+            temporaryOverlayIntent.putExtras(bundle);
+            startService(nonTemporaryOverlayIntent);
         }
     }
 
     /** Stops the overlay service */
     private void stopOverlayService() {
-        Intent intent = new Intent(this, OverlayService.class);
-        stopService(intent);
+        cancelPendingOverlayIntents();
+
+        if(nonTemporaryOverlayIntent != null) {
+            stopService(nonTemporaryOverlayIntent);
+        }
+
         isOverlayServiceActive = false;
+    }
+
+    /** If we have a pending overlay intent already, cancel it */
+    public void cancelPendingOverlayIntents() {
+        if(pendingOverlayIntent != null) {
+            alarmManager.cancel(pendingOverlayIntent);
+        }
     }
 
     /** When the user clicks the update location button, we refresh all location data */
