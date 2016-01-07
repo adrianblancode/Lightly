@@ -14,7 +14,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin">
 
-        <Switch
+        <android.support.v7.widget.SwitchCompat
             android:id="@+id/switch_enabled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,7 +22,6 @@
             android:paddingBottom="16dp"
             android:layout_alignParentBottom="true"
             android:text="Enabled"
-            android:textOff="Enabled"
             android:textSize="16dp"
             android:textColor="@android:color/darker_gray"
             android:textColorHighlight="@android:color/darker_gray"

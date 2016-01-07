@@ -11,8 +11,8 @@
     <string name="location_text_placeholder">Unknown location</string>
     <string name="location_button">Update Location</string>
 
-    <string name="permission_denied_title">Whoops!</string>
-    <string name="permission_denied_body">Lightly needs permission to draw on top of other screens
+    <string name="permission_denied_title">Oops!</string>
+    <string name="permission_denied_body">Lightly needs permission to draw on the screen in order to
         to work.</string>
 
 </resources>

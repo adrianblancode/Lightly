@@ -12,6 +12,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SwitchCompat;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,7 +55,7 @@ import retrofit.Retrofit;
 public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.switch_enabled)
-    Switch switchEnabled;
+    SwitchCompat switchEnabled;
     @Bind(R.id.seekbar_night_color)
     SeekBar seekBarNightColor;
     @Bind(R.id.night_color_circle)
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     Drawable brightnessLowDrawable;
 
     private static final int SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE = 80;
-    private static final int SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE = 20;
+    private static final int SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE = 80;
 
     private Gson gson;
     private AlarmManager alarmManager;
@@ -106,6 +107,12 @@ public class MainActivity extends AppCompatActivity {
 
         gson = new Gson();
         alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+
+        // We request permissions to draw over the screen, if we don't have permissions
+        permissionHandler = new PermissionHandler();
+
+        // Request data from REST APIs
+        dataRequestHandler = new DataRequestHandler();
 
         // Restore data from SharedPreferences
         SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
@@ -192,81 +199,15 @@ public class MainActivity extends AppCompatActivity {
 
         updateSunCycleView(sunCycle);
 
-        // Request data from REST APIs
-        dataRequestHandler = new DataRequestHandler();
-
         // Automatically request location data if we only have dummy data
         if(hasDummyData) {
             requestLocationData();
-        }
-
-        // We request permissions to draw over the screen, if we don't have permissions
-        permissionHandler = new PermissionHandler();
-
-        // TODO: fix Marshmallow permissions
-        if (!permissionHandler.hasDrawOverlayPermission(this)) {
-            startActivityForResult(permissionHandler.getDrawOverlayPermissionIntent(this),
-                    Constants.OVERLAY_PERMISSION_REQUEST_CODE);
         }
 
         // If the service was active before, start it again
         if (isOverlayServiceActive) {
             startOverlayService();
         }
-    }
-
-    /** Restarts the overlay service if the active flag is set, otherwise stops the service */
-    private void restartOverlayService() {
-        if(isOverlayServiceActive) {
-            startOverlayService();
-        } else {
-            stopOverlayService();
-        }
-    }
-
-    /** Starts the overlay service, if we have permission to do so. Also sends all required info */
-    private void startOverlayService() {
-        if(permissionHandler.hasDrawOverlayPermission(this)) {
-            Intent intent = new Intent(this, OverlayService.class);
-            Bundle bundle = new Bundle();
-
-            // We are sending these two objects every time the filter updates, which is bad
-            // But it's only two parcelable POJOs, and premature optimization is the root of all evil
-            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
-            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
-
-            intent.putExtras(bundle);
-            startService(intent);
-            isOverlayServiceActive = true;
-
-            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, 0);
-
-            // Repeat the intent in 15 minutes, every 15 minutes
-            // Overwrites previous alarms because they have the same ID
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-                    AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                    pendingIntent);
-        }
-    }
-
-    /** Starts a temporary overlay service with a temporary color, without setting the active flag */
-    private void startOverlayServiceTemporary() {
-        if(permissionHandler.hasDrawOverlayPermission(this)) {
-            Intent intent = new Intent(this, OverlayService.class);
-            Bundle bundle = new Bundle();
-
-            // Sends the strongest color on the cycle
-            bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
-            intent.putExtras(bundle);
-            startService(intent);
-        }
-    }
-
-    /** Stops the overlay service */
-    private void stopOverlayService() {
-        Intent intent = new Intent(this, OverlayService.class);
-        stopService(intent);
-        isOverlayServiceActive = false;
     }
 
     /**
@@ -395,6 +336,60 @@ public class MainActivity extends AppCompatActivity {
         sunCycleView.invalidate();
     }
 
+    /** Restarts the overlay service if the active flag is set, otherwise stops the service */
+    private void restartOverlayService() {
+        if(isOverlayServiceActive) {
+            startOverlayService();
+        } else {
+            stopOverlayService();
+        }
+    }
+
+    /** Starts the overlay service, if we have permission to do so. Also sends all required info */
+    private void startOverlayService() {
+        if(permissionHandler.hasDrawOverlayPermission(this)) {
+            Intent intent = new Intent(this, OverlayService.class);
+            Bundle bundle = new Bundle();
+
+            // We are sending these two objects every time the filter updates, which is bad
+            // But it's only two parcelable POJOs, and premature optimization is the root of all evil
+            bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
+            bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
+
+            intent.putExtras(bundle);
+            startService(intent);
+            isOverlayServiceActive = true;
+
+            PendingIntent pendingIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE, intent, 0);
+
+            // Repeat the intent in 15 minutes, every 15 minutes
+            // Overwrites previous alarms because they have the same ID
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                    pendingIntent);
+        }
+    }
+
+    /** Starts a temporary overlay service with a temporary color, without setting the active flag */
+    private void startOverlayServiceTemporary() {
+        if(permissionHandler.hasDrawOverlayPermission(this)) {
+            Intent intent = new Intent(this, OverlayService.class);
+            Bundle bundle = new Bundle();
+
+            // Sends the strongest color on the cycle
+            bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
+            intent.putExtras(bundle);
+            startService(intent);
+        }
+    }
+
+    /** Stops the overlay service */
+    private void stopOverlayService() {
+        Intent intent = new Intent(this, OverlayService.class);
+        stopService(intent);
+        isOverlayServiceActive = false;
+    }
+
     /** When the user clicks the update location button, we refresh all location data */
     @OnClick(R.id.location_button)
     public void onClick() {
@@ -404,10 +399,19 @@ public class MainActivity extends AppCompatActivity {
     /** When the user checks the enabled switch, we toggle the overlay */
     @OnCheckedChanged(R.id.switch_enabled)
     public void onCheckedChanged(boolean isChecked) {
-        if (isChecked) {
-            startOverlayService();
+
+        // Do stuff if we have permission, otherwise set switch to disabled
+        if (permissionHandler.hasDrawOverlayPermission(this)) {
+
+            if (isChecked) {
+                startOverlayService();
+            } else {
+                stopOverlayService();
+            }
         } else {
-            stopOverlayService();
+            startActivityForResult(permissionHandler.getDrawOverlayPermissionIntent(this),
+                    Constants.OVERLAY_PERMISSION_REQUEST_CODE);
+            switchEnabled.setChecked(false);
         }
     }
 
