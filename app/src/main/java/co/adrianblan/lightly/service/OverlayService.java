@@ -48,11 +48,7 @@ public class OverlayService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        System.err.println("Service started!");
-
         if(intent != null && intent.getExtras() != null) {
-
-            System.err.println("Service initialized!");
 
             Bundle bundle = intent.getExtras();
             Set<String> bundleKeyset = bundle.keySet();
@@ -138,12 +134,11 @@ public class OverlayService extends Service {
 
     @Override
     public void onDestroy() {
-        System.err.println("Service stopped!");
+
         super.onDestroy();
         if(overlayView != null){
             WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
             windowManager.removeView(overlayView);
-            System.err.println("Overlay removed");
         }
 
         // Whenever the service is terminated, also destroy the notification

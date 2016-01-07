@@ -12,8 +12,11 @@ public class SunCycleColorHandler {
     private static final float TWILIGHT_TRANSITION_DISTANCE =
             (TWILIGHT_TRANSITION_DURATION / 60f) / 24f; // Twilight transition distance in [0, 1]
 
-    private static final SunCycleColorWrapper colorFilterBase = new SunCycleColorWrapper(0, 255, 170, 84);
+    private static final SunCycleColorWrapper colorFilterBase = new SunCycleColorWrapper(0, 255, 130, 0);
     private static final SunCycleColorWrapper brightnessFilterBase = new SunCycleColorWrapper(0, 0, 0, 0);
+    private static final int COLOR_FILTER_MAX_ALPHA = 180;
+    private static final int COLOR_TEMPERATURE_MIN = 1800;
+    private static final int COLOR_TEMPERATURE_MAX = 6000;
 
     // These intensities might be flipped due to SeekBar placement
     private int colorFilterIntensity;
@@ -54,12 +57,56 @@ public class SunCycleColorHandler {
         return sunCycleColorWrapper.getColor();
     }
 
+    /** Returns the interpolated color of the temperature and the brightness based on their intensities */
+    private SunCycleColorWrapper getOverlayColor() {
+
+        SunCycleColorWrapper colorFilterWrapper = getColorFilterWrapper();
+        SunCycleColorWrapper brightnessFilterWrapper = getBrightnessFilterWrapper();
+
+        return interpolate(colorFilterWrapper, brightnessFilterWrapper, 100 - colorFilterIntensity, 300 - 3 * brightnessFilterIntensity);
+    }
+
     /** Returns a wrapper for the color of the color filter */
     public SunCycleColorWrapper getColorFilterWrapper() {
-        SunCycleColorWrapper colorFilterWrapper = new SunCycleColorWrapper(colorFilterBase);
-        colorFilterWrapper.setAlpha(200 - (int) 2.0 * colorFilterIntensity);
-        
+        SunCycleColorWrapper colorFilterWrapperBase = new SunCycleColorWrapper(colorFilterBase);
+        SunCycleColorWrapper colorFilterWrapper = new SunCycleColorWrapper(colorFilterWrapperBase);
+        float colorFilterIntensityScale = colorFilterIntensity / 100f;
+
+        colorFilterWrapper.setAlpha(COLOR_FILTER_MAX_ALPHA -
+                (int) (COLOR_FILTER_MAX_ALPHA * colorFilterIntensityScale));
+
+        int green = colorFilterWrapperBase.getGreen() + (int) ((255 - colorFilterWrapperBase.getGreen())
+                * colorFilterIntensityScale);
+
+        colorFilterWrapper.setGreen(green);
+
+        int blue = colorFilterWrapperBase.getBlue() + (int) ((255 - colorFilterWrapperBase.getBlue())
+                * colorFilterIntensityScale);
+
+        colorFilterWrapper.setBlue(blue);
+
         return colorFilterWrapper;
+    }
+
+    /** Gets the current color temperature of the color filter */
+    public int getColorTemperature() {
+        int alpha = getColorFilterWrapper().getAlpha();
+
+        // Get precise temperature
+        int temperature = (int) (COLOR_TEMPERATURE_MIN + (COLOR_TEMPERATURE_MAX - COLOR_TEMPERATURE_MIN)
+                * (1.0f - ((float) alpha / COLOR_FILTER_MAX_ALPHA)));
+
+        // Round to nearest 100
+        temperature = ((temperature + 50) / 100) * 100;
+
+        return temperature;
+    }
+
+    public int getBrightnessPercent() {
+        float brightness = (1.0f - (getBrightnessFilterWrapper().getAlpha() / 255f)) * 100f;
+
+        // Round to nearest 5%
+       return (int)((brightness + 2.5f) / 5) * 5;
     }
 
     /** Returns a wrapper for the color of the brightness filter */
@@ -68,15 +115,6 @@ public class SunCycleColorHandler {
         brightnessFilterWrapper.setAlpha(200 - (int) 2.0 * brightnessFilterIntensity);
 
         return brightnessFilterWrapper;
-    }
-
-    /** Returns the interpolated color of the temperature and the brightness based on their intensities */
-    private SunCycleColorWrapper getOverlayColor() {
-
-        SunCycleColorWrapper colorFilterWrapper = getColorFilterWrapper();
-        SunCycleColorWrapper brightnessFilterWrapper = getBrightnessFilterWrapper();
-
-        return interpolate(colorFilterWrapper, brightnessFilterWrapper, 100 - colorFilterIntensity, 300 - 3 * brightnessFilterIntensity);
     }
     
     /** Interpolate between two colors, the second one is scaled by a priority */

@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
-            android:paddingBottom="16dp"
+            android:paddingBottom="20dp"
             android:layout_alignParentBottom="true"
             android:text="Enabled"
             android:textSize="16dp"
@@ -46,16 +46,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/seekbar_night_color_label"
-                    android:layout_width="match_parent"
+                <RelativeLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-
                     android:layout_marginTop="4dp"
                     android:paddingLeft="@dimen/activity_horizontal_margin"
-                    android:paddingRight="@dimen/activity_horizontal_margin"
-                    android:text="@string/seekbar_night_color"
-                    android:textSize="16dp"/>
+                    android:paddingRight="@dimen/activity_horizontal_margin">
+
+                    <TextView
+                        android:id="@+id/seekbar_night_color_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/seekbar_night_color"
+                        android:textSize="16dp"/>
+
+                    <TextView
+                        android:id="@+id/night_color_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:text="2400K"
+                        android:textSize="16dp"/>
+                </RelativeLayout>
 
                 <SeekBar
                     android:id="@+id/seekbar_night_color"
@@ -66,6 +79,7 @@
                     android:progress="20"
                     android:max="100"/>
             </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -87,16 +101,32 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/seekbar_night_brightness_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
 
+                <RelativeLayout
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:paddingLeft="@dimen/activity_horizontal_margin"
-                    android:paddingRight="@dimen/activity_horizontal_margin"
-                    android:text="@string/seekbar_night_brightness"
-                    android:textSize="16dp"/>
+                    android:paddingRight="@dimen/activity_horizontal_margin">
+
+                    <TextView
+                        android:id="@+id/seekbar_night_brightness_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="@string/seekbar_night_brightness"
+                        android:textSize="16dp"/>
+
+                    <TextView
+                        android:id="@+id/night_brightness_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+
+                        android:text="80%"
+                        android:textSize="16dp"/>
+                </RelativeLayout>
 
                 <SeekBar
                     android:id="@+id/seekbar_night_brightness"

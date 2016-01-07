@@ -4,8 +4,8 @@
     <string name="seekbar_title">Adjust your brightness for night and day</string>
 
 
-    <string name="seekbar_night_color">Night color filter</string>
-    <string name="seekbar_night_brightness">Night brightness filter</string>
+    <string name="seekbar_night_color">Night color temperature</string>
+    <string name="seekbar_night_brightness">Night brightness</string>
 
     <string name="sun_cycle_placeholder">Unknown time</string>
     <string name="location_text_placeholder">Unknown location</string>

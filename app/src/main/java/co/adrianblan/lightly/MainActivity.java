@@ -55,15 +55,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.switch_enabled)
     SwitchCompat switchEnabled;
+
+    // Seekbars
     @Bind(R.id.seekbar_night_color)
     SeekBar seekBarNightColor;
     @Bind(R.id.night_color_circle)
     ImageView nightColorCircle;
+    @Bind(R.id.night_color_value)
+    TextView nightColorValue;
+
     @Bind(R.id.seekbar_night_brightness)
     SeekBar seekBarNightBrightness;
     @Bind(R.id.night_brightness_circle)
     ImageView nightBrightnessCircle;
+    @Bind(R.id.night_brightness_value)
+    TextView nightBrightnessValue;
 
+    // Sun cycle
     @Bind(R.id.lightly_main)
     LinearLayout lightlyMainView;
     @Bind(R.id.sun_cycle_status)
@@ -73,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.location_body)
     TextView locationBody;
 
+    // Sun cycle drawables
     @BindDrawable(R.drawable.ic_brightness_medium_white_inverted_24dp)
     Drawable brightnessMediumInvertedDrawable;
     @BindDrawable(R.drawable.ic_brightness_high_white_24dp)
@@ -96,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
     private SunCycleColorHandler sunCycleColorHandler;
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
+
     private Intent nonTemporaryOverlayIntent;
     private Intent temporaryOverlayIntent;
     private PendingIntent pendingOverlayIntent;
@@ -322,14 +332,21 @@ public class MainActivity extends AppCompatActivity {
     /** Takes a SunCycle, and updates the view according to the data inside */
     private void updateSunCycleView(SunCycle sunCycle) {
 
+        final float COLOR_EMPHASIS = 4f;
+        final float BRIGHTNESS_EMPHASIS = 1.5f;
+
         // Exaggerate colors for emphasis
         SunCycleColorWrapper nightColor = sunCycleColorHandler.getColorFilterWrapper();
-        nightColor.setAlpha(Math.min((int) (nightColor.getAlpha() * 1.5f), 255));
+        nightColor.setAlpha(Math.min((int) (nightColor.getAlpha() * COLOR_EMPHASIS), 255));
         nightColorCircle.setColorFilter(nightColor.getColor());
 
         SunCycleColorWrapper nightBrightness = sunCycleColorHandler.getBrightnessFilterWrapper();
-        nightBrightness.setAlpha(Math.min((int) (nightBrightness.getAlpha() * 1.5f), 255));
+        nightBrightness.setAlpha(Math.min((int) (nightBrightness.getAlpha() * BRIGHTNESS_EMPHASIS), 255));
         nightBrightnessCircle.setColorFilter(nightBrightness.getColor());
+
+        // Set seekbar value text
+        nightColorValue.setText(sunCycleColorHandler.getColorTemperature() + "K");
+        nightBrightnessValue.setText(sunCycleColorHandler.getBrightnessPercent() + "%");
 
         // Update sun position to current time
         sunCycle.updateSunPositionHorizontal(new Date());
