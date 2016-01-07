@@ -65,7 +65,7 @@ public class SunCycleView extends View {
 
         // Attempt to get attributes from XML
         try {
-            // TODO: get system accent color
+            // TODO: get system accent color?
             accentColor = typedArray.getColor(R.styleable.SunCycleView_primaryColor, Color.parseColor(DEFAULT_PRIMARY_COLOR_STRING));
             sunDrawables = new ArrayList<Drawable>();
             sunDrawables.add(typedArray.getDrawable(R.styleable.SunCycleView_sunDrawable));
@@ -94,8 +94,6 @@ public class SunCycleView extends View {
         }
 
         sunPath = new Path();
-
-        // TODO: fix colors properly
 
         sunPathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunPathPaint.setColor(accentColor);

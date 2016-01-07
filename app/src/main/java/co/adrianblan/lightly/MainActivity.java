@@ -325,6 +325,9 @@ public class MainActivity extends AppCompatActivity {
         nightBrightness.setAlpha(Math.min((int) (nightBrightness.getAlpha() * 1.5f), 255));
         nightBrightnessCircle.setColorFilter(nightBrightness.getColor());
 
+        // Update sun position to current time
+        sunCycle.updateSunPositionHorizontal(new Date());
+
         sunCycleView.setNightColor(sunCycleColorHandler.getOverlayColorMax());
         sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
         sunCycleView.setSunPositionHorizontal(sunCycle.getSunPositionHorizontal());
