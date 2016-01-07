@@ -15,6 +15,7 @@ public class SunCycleColorHandler {
     private static final SunCycleColorWrapper colorFilterBase = new SunCycleColorWrapper(0, 255, 170, 84);
     private static final SunCycleColorWrapper brightnessFilterBase = new SunCycleColorWrapper(0, 0, 0, 0);
 
+    // These intensities might be flipped due to SeekBar placement
     private int colorFilterIntensity;
     private int brightnessFilterIntensity;
 

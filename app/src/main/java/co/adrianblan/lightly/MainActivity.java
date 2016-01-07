@@ -41,6 +41,7 @@ import co.adrianblan.lightly.network.DataRequestHandler;
 import co.adrianblan.lightly.service.OverlayService;
 import co.adrianblan.lightly.suncycle.SunCycle;
 import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
+import co.adrianblan.lightly.suncycle.SunCycleColorWrapper;
 import co.adrianblan.lightly.view.SunCycleView;
 import retrofit.Call;
 import retrofit.Callback;
@@ -373,8 +374,15 @@ public class MainActivity extends AppCompatActivity {
 
     /** Takes a SunCycle, and updates the view according to the data inside */
     private void updateSunCycleView(SunCycle sunCycle) {
-        nightColorCircle.setColorFilter(sunCycleColorHandler.getColorFilterWrapper().getColor());
-        nightBrightnessCircle.setColorFilter(sunCycleColorHandler.getBrightnessFilterWrapper().getColor());
+
+        // Exaggerate colors for emphasis
+        SunCycleColorWrapper nightColor = sunCycleColorHandler.getColorFilterWrapper();
+        nightColor.setAlpha(Math.min((int) (nightColor.getAlpha() * 1.5f), 255));
+        nightColorCircle.setColorFilter(nightColor.getColor());
+
+        SunCycleColorWrapper nightBrightness = sunCycleColorHandler.getBrightnessFilterWrapper();
+        nightBrightness.setAlpha(Math.min((int) (nightBrightness.getAlpha() * 1.5f), 255));
+        nightBrightnessCircle.setColorFilter(nightBrightness.getColor());
 
         sunCycleView.setNightColor(sunCycleColorHandler.getOverlayColorMax());
         sunCycleView.setCycleOffsetHorizontal(sunCycle.getCycleOffsetHorizontal());
