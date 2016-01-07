@@ -98,7 +98,7 @@ public class SunCycleView extends View {
         sunPathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunPathPaint.setColor(accentColor);
         sunPathPaint.setStyle(Paint.Style.STROKE);
-        sunPathPaint.setStrokeWidth(8);
+        sunPathPaint.setStrokeWidth(10);
 
         sunCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunCirclePaint.setColor(accentColor);
@@ -120,7 +120,7 @@ public class SunCycleView extends View {
 
         // Gradient that goes from the accentcolor, to the darkest cycle color to signify filters
         sunPathPaint.setShader(new LinearGradient(0, PATH_HEIGHT_SCALE * -getHeight() / 2, 0, PATH_HEIGHT_SCALE * getHeight() / 2, accentColor,
-                SunCycleColorHandler.interpolateWithPriority(accentColor, nightColor, 14), Shader.TileMode.MIRROR));
+                SunCycleColorHandler.interpolateWithPriority(accentColor, nightColor, 8), Shader.TileMode.MIRROR));
 
         sunPath.reset();
 

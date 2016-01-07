@@ -88,7 +88,7 @@ public class SunCycleColorHandler {
         return colorFilterWrapper;
     }
 
-    /** Gets the current color temperature of the color filter */
+    /** Gets the current color temperature of the color filter, rounded to nearest 100 */
     public int getColorTemperature() {
         int alpha = getColorFilterWrapper().getAlpha();
 
@@ -102,6 +102,7 @@ public class SunCycleColorHandler {
         return temperature;
     }
 
+    /** Get the brightness percent, rounded to nearest 5 */
     public int getBrightnessPercent() {
         float brightness = (1.0f - (getBrightnessFilterWrapper().getAlpha() / 255f)) * 100f;
 
