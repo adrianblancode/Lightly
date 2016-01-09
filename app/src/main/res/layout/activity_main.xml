@@ -25,6 +25,7 @@
             android:textSize="16dp"
             android:textColor="@android:color/darker_gray"
             android:textColorHighlight="@android:color/darker_gray"
+            android:background="@null"
             android:checked="true"/>
 
         <LinearLayout

@@ -106,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private DataRequestHandler dataRequestHandler;
     private PermissionHandler permissionHandler;
 
-    private Intent nonTemporaryOverlayIntent;
-    private Intent temporaryOverlayIntent;
+    private Intent overlayIntent;
     private PendingIntent pendingOverlayIntent;
 
 
@@ -208,20 +207,23 @@ public class MainActivity extends AppCompatActivity {
         sunDrawables.add(brightnessLowDrawable);
         sunCycleView.setSunDrawables(sunDrawables);
 
-        updateView(sunCycle);
-
         // Automatically request location data if we only have dummy data
         if(hasDummyData) {
             requestLocationData();
         }
 
-        nonTemporaryOverlayIntent = new Intent(this, OverlayService.class);
-        temporaryOverlayIntent = new Intent(this, OverlayService.class);
+        overlayIntent = new Intent(this, OverlayService.class);
 
         // If the service was active before, start it again
         if (isOverlayServiceActive) {
             startOverlayService();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        updateView(sunCycle);
     }
 
     /**
@@ -385,13 +387,13 @@ public class MainActivity extends AppCompatActivity {
             bundle.putParcelable("sunCycle", Parcels.wrap(sunCycle));
             bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
 
-            nonTemporaryOverlayIntent.putExtras(bundle);
-            startService(nonTemporaryOverlayIntent);
+            overlayIntent.putExtras(bundle);
+            startService(overlayIntent);
 
             isOverlayServiceActive = true;
 
             pendingOverlayIntent = PendingIntent.getService(this, Constants.SERVICE_OVERLAY_REQUEST_CODE,
-                    nonTemporaryOverlayIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    overlayIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Repeat the intent in 15 minutes, every 15 minutes
             // Overwrites previous alarms because they have the same ID
@@ -419,8 +421,8 @@ public class MainActivity extends AppCompatActivity {
     private void stopOverlayService() {
         cancelPendingOverlayIntents();
 
-        if(nonTemporaryOverlayIntent != null) {
-            stopService(nonTemporaryOverlayIntent);
+        if(overlayIntent != null) {
+            stopService(overlayIntent);
         }
 
         isOverlayServiceActive = false;
