@@ -9,8 +9,8 @@ import java.util.Date;
 import java.util.Locale;
 
 import co.adrianblan.lightly.helpers.Constants;
-import co.adrianblan.lightly.helpers.StringUtils;
 import co.adrianblan.lightly.data.SunriseSunsetData;
+import co.adrianblan.lightly.helpers.Utils;
 
 /**
  * A class which models the information for a sun cycle
@@ -121,13 +121,13 @@ public class SunCycle {
             int hoursUntilSunrise = (int) (((getSunrisePositionHorizontal() -
                     getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
 
-            return "Sunrise in " + StringUtils.getHumanizedHours(hoursUntilSunrise);
+            return "Sunrise in " + Utils.getHumanizedHours(hoursUntilSunrise);
         } else {
             // Otherwise, we expect the sunset
             int hoursUntilSunset = (int) (((getSunsetPositionHorizontal() -
                     getSunPositionHorizontal() + 1.0f) % 1.0f) * 24f);
 
-            return " Sunset in " + StringUtils.getHumanizedHours(hoursUntilSunset);
+            return " Sunset in " + Utils.getHumanizedHours(hoursUntilSunset);
         }
     }
 

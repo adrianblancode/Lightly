@@ -20,6 +20,7 @@ import android.view.View;
 import java.util.ArrayList;
 
 import co.adrianblan.lightly.R;
+import co.adrianblan.lightly.helpers.Utils;
 import co.adrianblan.lightly.suncycle.SunCycle;
 import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 
@@ -28,7 +29,7 @@ import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
  */
 public class SunCycleView extends View {
 
-    private static final int PATH_ITERATIONS = 100;
+    private static final int PATH_ITERATIONS = 160;
     private static final float PATH_HEIGHT_SCALE = 0.80f;
     private static final float VIEW_HEIGHT_RATIO = 0.314f;
 
@@ -50,7 +51,6 @@ public class SunCycleView extends View {
     private Paint sunPathPaint;
     private Paint sunCirclePaint;
     private Paint twilightDividerPaint;
-    private Paint twilightPointPaint;
 
     public SunCycleView(Context context) {
         super(context);
@@ -98,19 +98,15 @@ public class SunCycleView extends View {
         sunPathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunPathPaint.setColor(accentColor);
         sunPathPaint.setStyle(Paint.Style.STROKE);
-        sunPathPaint.setStrokeWidth(10);
+        sunPathPaint.setStrokeWidth(Utils.convertDpToPixels(4));
 
         sunCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sunCirclePaint.setColor(accentColor);
-        sunCirclePaint.setStrokeWidth(8);
+        sunCirclePaint.setStrokeWidth(Utils.convertDpToPixels(4));
 
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         twilightDividerPaint.setColor(Color.LTGRAY);
-        twilightDividerPaint.setStrokeWidth(2);
-
-        twilightPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        twilightPointPaint.setColor(Color.LTGRAY);
-        twilightPointPaint.setStrokeWidth(4);
+        twilightDividerPaint.setStrokeWidth(Utils.convertDpToPixels(2));
     }
 
     /**

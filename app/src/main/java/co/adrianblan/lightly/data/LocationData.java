@@ -34,11 +34,19 @@ public class LocationData {
         LocationData dummyLocationData = new LocationData();
 
         dummyLocationData.setRegionName("Unknown");
-        dummyLocationData.setRegionName("Unknown");
+        dummyLocationData.setCountry("Unknown");
         dummyLocationData.setLatitude(59.32);
         dummyLocationData.setLongitude(18.07);
 
         return dummyLocationData;
+    }
+
+    public String getHumanizedLocation() {
+        if(regionName.equals("Unknown") && country.equals("Unknown")) {
+            return "Unknown location";
+        } else {
+            return regionName + ", " + country;
+        }
     }
 
     /** Returns whether all the member variables in the object are not empty */

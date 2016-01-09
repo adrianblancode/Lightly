@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 startOverlayServiceTemporary();
-                updateSunCycleView(sunCycle);
+                updateView(sunCycle);
             }
 
             @Override
@@ -208,9 +208,7 @@ public class MainActivity extends AppCompatActivity {
         sunDrawables.add(brightnessLowDrawable);
         sunCycleView.setSunDrawables(sunDrawables);
 
-        locationBody.setText(locationData.getRegionName() + ", " + locationData.getCountry());
-
-        updateSunCycleView(sunCycle);
+        updateView(sunCycle);
 
         // Automatically request location data if we only have dummy data
         if(hasDummyData) {
@@ -299,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
                         sunriseSunsetData = sunriseSunsetDataTemp;
                         hasDummyData = false;
 
-                        updateSunCycleView(sunCycle);
+                        updateView(sunCycle);
 
                         // Snackbar that informs of the updated location
                         Snackbar.make(lightlyMainView, "Location updated", Snackbar.LENGTH_SHORT).show();
@@ -330,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Takes a SunCycle, and updates the view according to the data inside */
-    private void updateSunCycleView(SunCycle sunCycle) {
+    private void updateView(SunCycle sunCycle) {
 
         final float COLOR_EMPHASIS = 4f;
         final float BRIGHTNESS_EMPHASIS = 1.5f;
@@ -347,6 +345,8 @@ public class MainActivity extends AppCompatActivity {
         // Set seekbar value text
         nightColorValue.setText(sunCycleColorHandler.getColorTemperature() + "K");
         nightBrightnessValue.setText(sunCycleColorHandler.getBrightnessPercent() + "%");
+
+        locationBody.setText(locationData.getHumanizedLocation());
 
         // Update sun position to current time
         sunCycle.updateSunPositionHorizontal(new Date());
