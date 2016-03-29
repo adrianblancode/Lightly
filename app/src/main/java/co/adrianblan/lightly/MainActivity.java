@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -126,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         dataRequestHandler = new DataRequestHandler();
 
         // Restore data from SharedPreferences
-        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         isOverlayServiceActive = sharedPreferences.getBoolean("isOverlayServiceActive", false);
         switchEnabled.setChecked(isOverlayServiceActive);
@@ -148,6 +149,8 @@ public class MainActivity extends AppCompatActivity {
             locationData = LocationData.getDummyLocationData();
             sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
         }
+
+
 
         try {
             // We create a SunCycle using the sunrise and sunset data
@@ -293,9 +296,6 @@ public class MainActivity extends AppCompatActivity {
                         Date currentDate = new Date();
                         sunCycle = new SunCycle(currentDate, sunriseSunsetDataTemp);
 
-                        System.err.println("sunrise: " + sunriseSunsetData.getCivilTwilightBegin()
-                                + ", sunset: " + sunriseSunsetData.getCivilTwilightEnd());
-
                         sunriseSunsetData = sunriseSunsetDataTemp;
                         hasDummyData = false;
 
@@ -378,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
         if(permissionHandler.hasDrawOverlayPermission(this)) {
 
             cancelPendingOverlayIntents();
-            //stopOverlayService();
 
             Bundle bundle = new Bundle();
 
@@ -429,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** If we have a pending overlay intent already, cancel it */
-    public void cancelPendingOverlayIntents() {
+    private void cancelPendingOverlayIntents() {
         if(pendingOverlayIntent != null) {
             alarmManager.cancel(pendingOverlayIntent);
         }
@@ -489,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Save our data when lifecycle is ending
-        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
 
         editor.putBoolean("isOverlayServiceActive", isOverlayServiceActive);
         editor.putBoolean("hasDummyData", hasDummyData);

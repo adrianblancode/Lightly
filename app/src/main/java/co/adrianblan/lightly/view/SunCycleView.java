@@ -106,7 +106,7 @@ public class SunCycleView extends View {
 
         twilightDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         twilightDividerPaint.setColor(Color.LTGRAY);
-        twilightDividerPaint.setStrokeWidth(Utils.convertDpToPixels(2));
+        twilightDividerPaint.setStrokeWidth(Utils.convertDpToPixels(1.6f));
     }
 
     /**

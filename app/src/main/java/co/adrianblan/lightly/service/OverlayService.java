@@ -8,23 +8,29 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
+import com.google.gson.Gson;
+
 import org.parceler.Parcels;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Set;
 
 import co.adrianblan.lightly.MainActivity;
 import co.adrianblan.lightly.R;
+import co.adrianblan.lightly.data.SunriseSunsetData;
 import co.adrianblan.lightly.helpers.Constants;
 import co.adrianblan.lightly.suncycle.SunCycle;
 import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
@@ -40,10 +46,12 @@ import co.adrianblan.lightly.suncycle.SunCycleColorHandler;
 public class OverlayService extends Service {
 
     private View overlayView;
-    private int filterColor = Color.TRANSPARENT;
+    private int filterColorDefaultValue = Color.TRANSPARENT;
+    private int filterColor = filterColorDefaultValue;
     private SunCycle sunCycle;
     private SunCycleColorHandler sunCycleColorHandler;
     private boolean isTemporaryOverlay;
+    private boolean colorIsInitialized = false;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -72,11 +80,32 @@ public class OverlayService extends Service {
             } else {
                 throw new IllegalArgumentException("Intent sent to overlay service with missing extras");
             }
+
+            /**
+             * We save the latest filter color in SharedPreferences to be retrieved in case the
+             * service is killed due to out of memory, and then restarted
+             */
+            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+            editor.putInt("filterColor", filterColor);
+            editor.apply();
+
+            colorIsInitialized = true;
+
         } else {
             System.err.println("Empty intent!");
+
+            // We have an uninitialized service
+            if(!colorIsInitialized) {
+
+                System.err.println("Retrieving color from SharedPreferences");
+
+                // Restore data from SharedPreferences
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                filterColor = sharedPreferences.getInt("filterColor", filterColorDefaultValue);
+            }
         }
 
-        // If the overlay is null, we instansiate everything
+        // If the overlay is null, we initialize everything
         if(overlayView == null) {
 
             WindowManager windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);

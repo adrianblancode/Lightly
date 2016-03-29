@@ -34,7 +34,7 @@ public class SunCycleColorHandler {
         return getOverlayColor().getColor();
     }
 
-    /** Takes a position [0, 1], compares it to twilight in a SunCycle and gives the appropriate color */
+    /** Takes a SunCycle and gives the appropriate color in the cycle */
     public int getOverlayColor (SunCycle sunCycle) {
         float positionHorizontal = sunCycle.getSunPositionHorizontal();
         float sunrise = sunCycle.getSunrisePositionHorizontal();
