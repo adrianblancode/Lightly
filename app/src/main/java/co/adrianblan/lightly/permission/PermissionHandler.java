@@ -1,4 +1,4 @@
-package co.adrianblan.lightly.helpers;
+package co.adrianblan.lightly.permission;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,10 +8,18 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 
+import java.security.Permission;
+
 /**
  * Handles checking for permissions, and requesting permissions.
  */
 public class PermissionHandler {
+
+    private Context context;
+
+    public PermissionHandler(Context context) {
+        this.context = context;
+    }
 
     /**
      * Returns whether we have the permission to draw overlays.
@@ -19,7 +27,7 @@ public class PermissionHandler {
      * In Marshmallow or higher this has to be done programatically at runtime, however for earlier
      * versions they are accepted on install. Can only be false if on Marshmallow or higher.
      */
-    public boolean hasDrawOverlayPermission(Context context) {
+    public boolean hasDrawOverlayPermission() {
         if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return Settings.canDrawOverlays(context.getApplicationContext());
         } else {
@@ -34,7 +42,7 @@ public class PermissionHandler {
      * Will only run if we do not already have the permission, AND if we are running on
      * Marshmallow or higher.
      */
-    public Intent getDrawOverlayPermissionIntent(Context context) {
+    public Intent getDrawOverlayPermissionIntent() {
         if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(context)) {
 
