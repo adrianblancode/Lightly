@@ -74,10 +74,7 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         // Restore data from SharedPreferences
-        overlayServiceHandler.setOverlayServiceActive(sharedPreferences.getBoolean("isOverlayServiceActive", false));
-
-        nightColorProgress = sharedPreferences.getInt("seekBarNightColorProgress", SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE);
-        nightBrightnessProgress = sharedPreferences.getInt("seekBarNightBrightnessProgress", SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE);
+        loadFromSharedPreferences(sharedPreferences);
 
         if(isViewAttached()) {
             getView().setSwitchEnabled(overlayServiceHandler.isOverlayServiceActive());
@@ -87,20 +84,6 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
             getView().setNightBrightnessProgress(nightBrightnessProgress);
         }
 
-        hasDummyData = sharedPreferences.getBoolean("hasDummyData", true);
-
-        // If we have stored previous data, retrieve it. Otherwise populate with dummy data.
-        if(!hasDummyData) {
-            String locationDataJson = sharedPreferences.getString("locationData", null);
-            locationData = gson.fromJson(locationDataJson, LocationData.class);
-
-            String sunriseSunsetDataJson = sharedPreferences.getString("sunriseSunsetData", null);
-            sunriseSunsetData = gson.fromJson(sunriseSunsetDataJson, SunriseSunsetData.class);
-        } else {
-            locationData = LocationData.getDummyLocationData();
-            sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
-        }
-
         try {
             // We create a SunCycle using the sunrise and sunset data
             Date currentDate = new Date();
@@ -108,17 +91,6 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
 
         } catch (ParseException e) {
             e.printStackTrace();
-        }
-
-        // Update colors
-        String sunCycleColorHandlerJson = sharedPreferences.getString("sunCycleColorHandler", null);
-
-        if(sunCycleColorHandlerJson != null) {
-            sunCycleColorHandler = gson.fromJson(sunCycleColorHandlerJson, SunCycleColorHandler.class);
-        } else {
-            System.err.println("No sun cycle color handler saved.");
-            sunCycleColorHandler = new SunCycleColorHandler(nightColorProgress,
-                    nightBrightnessProgress);
         }
 
         // Automatically request location data if we only have dummy data
@@ -134,6 +106,41 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         }
 
         isInitialized = true;
+    }
+
+    /**
+     * Loads the presenter variables from SharedPreferences
+     */
+    private void loadFromSharedPreferences(SharedPreferences sharedPreferences) {
+        overlayServiceHandler.setOverlayServiceActive(sharedPreferences.getBoolean("isOverlayServiceActive", false));
+
+        nightColorProgress = sharedPreferences.getInt("seekBarNightColorProgress", SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE);
+        nightBrightnessProgress = sharedPreferences.getInt("seekBarNightBrightnessProgress", SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE);
+
+        hasDummyData = sharedPreferences.getBoolean("hasDummyData", true);
+
+        // If we have stored previous data, retrieve it. Otherwise populate with dummy data.
+        if(!hasDummyData) {
+            String locationDataJson = sharedPreferences.getString("locationData", null);
+            locationData = gson.fromJson(locationDataJson, LocationData.class);
+
+            String sunriseSunsetDataJson = sharedPreferences.getString("sunriseSunsetData", null);
+            sunriseSunsetData = gson.fromJson(sunriseSunsetDataJson, SunriseSunsetData.class);
+        } else {
+            locationData = LocationData.getDummyLocationData();
+            sunriseSunsetData = SunriseSunsetData.getDummySunriseSunsetData();
+        }
+
+        String sunCycleColorHandlerJson = sharedPreferences.getString("sunCycleColorHandler", null);
+
+        // Update colors
+        if(sunCycleColorHandlerJson != null) {
+            sunCycleColorHandler = gson.fromJson(sunCycleColorHandlerJson, SunCycleColorHandler.class);
+        } else {
+            System.err.println("No sun cycle color handler saved.");
+            sunCycleColorHandler = new SunCycleColorHandler(nightColorProgress,
+                    nightBrightnessProgress);
+        }
     }
 
     public boolean isInitialized() {
