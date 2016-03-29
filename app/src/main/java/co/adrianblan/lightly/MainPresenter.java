@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 
@@ -43,13 +44,15 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
 
     private Gson gson;
 
-    private boolean isOverlayServiceActive;
     private boolean hasDummyData;
     private LocationData locationData;
     private SunriseSunsetData sunriseSunsetData;
     private SunCycle sunCycle;
     private SunCycleColorHandler sunCycleColorHandler;
     private DataRequestHandler dataRequestHandler;
+
+    private OverlayServiceHandler overlayServiceHandler;
+    private PermissionHandler permissionHandler;
 
     private Intent overlayIntent;
     private PendingIntent pendingOverlayIntent;
@@ -58,24 +61,26 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
     private int nightBrightnessProgress;
     private boolean isInitialized = false;
 
-    public void initialize(Context context, OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                           SharedPreferences sharedPreferences, PermissionHandler permissionHandler) {
+    public void initialize(Context context) {
         gson = new Gson();
 
         // We request permissions to draw over the screen, if we don't have permissions
-
+        overlayServiceHandler = new OverlayServiceHandler();
+        permissionHandler = new PermissionHandler();
 
         // Request data from REST APIs
         dataRequestHandler = new DataRequestHandler();
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
         // Restore data from SharedPreferences
-        isOverlayServiceActive = sharedPreferences.getBoolean("isOverlayServiceActive", false);
+        overlayServiceHandler.setOverlayServiceActive(sharedPreferences.getBoolean("isOverlayServiceActive", false));
 
         nightColorProgress = sharedPreferences.getInt("seekBarNightColorProgress", SEEKBAR_DAY_PROGRESS_DEFAULT_VALUE);
         nightBrightnessProgress = sharedPreferences.getInt("seekBarNightBrightnessProgress", SEEKBAR_NIGHT_PROGRESS_DEFAULT_VALUE);
 
         if(isViewAttached()) {
-            getView().setSwitchEnabled(isOverlayServiceActive);
+            getView().setSwitchEnabled(overlayServiceHandler.isOverlayServiceActive());
 
             // Update SeekBars
             getView().setNightColorProgress(nightColorProgress);
@@ -121,11 +126,11 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
             requestLocationData();
         }
 
-        overlayIntent = overlayServiceHandler.getNewOverlayService();
+        overlayIntent = overlayServiceHandler.getNewOverlayService(context);
 
         // If the service was active before, start it again
-        if (isOverlayServiceActive) {
-            startOverlayService(overlayServiceHandler, alarmManager, permissionHandler);
+        if (overlayServiceHandler.isOverlayServiceActive()) {
+            startOverlayService(context);
         }
 
         isInitialized = true;
@@ -141,83 +146,75 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         }
     }
 
-    public void switchEnabled(boolean isChecked, OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                              PermissionHandler permissionHandler) {
+    public void switchEnabled(Context context, boolean isChecked) {
         // Do stuff if we have permission, otherwise set switch to disabled
-
-        if (permissionHandler.hasDrawOverlayPermission()) {
+        if (permissionHandler.hasDrawOverlayPermission(context)) {
 
             if (isChecked) {
-                startOverlayService(overlayServiceHandler, alarmManager, permissionHandler);
+                startOverlayService(context);
             } else {
-                stopOverlayService(overlayServiceHandler, alarmManager);
+                stopOverlayService(context);
             }
         } else {
 
             if(isViewAttached()) {
                 getView().setSwitchEnabled(isChecked);
-                getView().startActivity(permissionHandler.getDrawOverlayPermissionIntent(),
+                getView().startActivity(permissionHandler.getDrawOverlayPermissionIntent(context),
                         Constants.OVERLAY_PERMISSION_REQUEST_CODE);
             }
         }
     }
 
-    public void nightColorChanged(int progress, OverlayServiceHandler overlayServiceHandler,
-                                  PermissionHandler permissionHandler) {
+    public void nightColorChanged(Context context, int progress) {
         nightColorProgress = progress;
         sunCycleColorHandler.setColorFilterIntensity(progress);
 
-        startOverlayServiceTemporary(overlayServiceHandler, permissionHandler);
+        startOverlayServiceTemporary(context);
         if(isViewAttached()) {
             getView().updateSunCycleView(sunCycle, sunCycleColorHandler, locationData.getHumanizedLocation());
         }
     }
 
-    public void nightColorStartTouch(OverlayServiceHandler overlayServiceHandler, PermissionHandler permissionHandler) {
-        startOverlayServiceTemporary(overlayServiceHandler, permissionHandler);
+    public void nightColorStartTouch(Context context) {
+        startOverlayServiceTemporary(context);
     }
 
-    public void nightColorStopTouch(OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                                    PermissionHandler permissionHandler) {
-        restartOverlayService(overlayServiceHandler, alarmManager, permissionHandler);
+    public void nightColorStopTouch(Context context) {
+        restartOverlayService(context);
     }
 
-    public void nightBrightnessChanged(int progress, OverlayServiceHandler overlayServiceHandler,
-                                       PermissionHandler permissionHandler) {
+    public void nightBrightnessChanged(Context context, int progress) {
         nightBrightnessProgress = progress;
         sunCycleColorHandler.setBrightnessFilterIntensity(progress);
 
-        startOverlayServiceTemporary(overlayServiceHandler, permissionHandler);
+        startOverlayServiceTemporary(context);
         if(isViewAttached()) {
             getView().updateSunCycleView(sunCycle, sunCycleColorHandler, locationData.getHumanizedLocation());
         }
     }
 
-    public void nightBrightnessStartTouch(OverlayServiceHandler overlayServiceHandler, PermissionHandler permissionHandler) {
-        startOverlayServiceTemporary(overlayServiceHandler, permissionHandler);
+    public void nightBrightnessStartTouch(Context context) {
+        startOverlayServiceTemporary(context);
     }
 
-    public void nightBrightnessStopTouch(OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                                         PermissionHandler permissionHandler) {
-        restartOverlayService(overlayServiceHandler, alarmManager, permissionHandler);
+    public void nightBrightnessStopTouch(Context context) {
+        restartOverlayService(context);
     }
 
     /** Restarts the overlay service if the active flag is set, otherwise stops the service */
-    private void restartOverlayService(OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                                       PermissionHandler permissionHandler) {
-        if(isOverlayServiceActive) {
-            startOverlayService(overlayServiceHandler, alarmManager, permissionHandler);
+    private void restartOverlayService(Context context) {
+        if(overlayServiceHandler.isOverlayServiceActive()) {
+            startOverlayService(context);
         } else {
-            stopOverlayService(overlayServiceHandler, alarmManager);
+            stopOverlayService(context);
         }
     }
 
     /** Starts the overlay service, if we have permission to do so. Also sends all required info */
-    private void startOverlayService(OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager,
-                                     PermissionHandler permissionHandler) {
-        if(permissionHandler.hasDrawOverlayPermission()) {
+    private void startOverlayService(Context context) {
+        if(permissionHandler.hasDrawOverlayPermission(context)) {
 
-            cancelPendingOverlayIntents(alarmManager);
+            cancelPendingOverlayIntents(context);
 
             Bundle bundle = new Bundle();
 
@@ -227,48 +224,50 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
             bundle.putParcelable("sunCycleColorHandler", Parcels.wrap(sunCycleColorHandler));
 
             overlayIntent.putExtras(bundle);
-            overlayServiceHandler.startService(overlayIntent);
+            overlayServiceHandler.startService(context, overlayIntent);
             overlayServiceHandler.setOverlayServiceActive(true);
 
-            pendingOverlayIntent = overlayServiceHandler.getPendingIntent(overlayIntent);
+            pendingOverlayIntent = overlayServiceHandler.getPendingIntent(context, overlayIntent);
 
             // Repeat the intent in 15 minutes, every 15 minutes
             // Overwrites previous alarms because they have the same ID
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE))
+                    .setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
                     AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES,
                     pendingOverlayIntent);
         }
     }
 
     /** Starts a temporary overlay service with a temporary color, without setting the active flag */
-    private void startOverlayServiceTemporary(OverlayServiceHandler overlayServiceHandler, PermissionHandler permissionHandler) {
-        if(permissionHandler.hasDrawOverlayPermission()) {
+    private void startOverlayServiceTemporary(Context context) {
+        if(permissionHandler.hasDrawOverlayPermission(context)) {
 
-            Intent temporaryOverlayIntent = overlayServiceHandler.getNewOverlayService();
+            Intent temporaryOverlayIntent = overlayServiceHandler.getNewOverlayService(context);
             Bundle bundle = new Bundle();
 
             // Sends the strongest color on the cycle
             bundle.putInt("filterColor", sunCycleColorHandler.getOverlayColorMax());
             temporaryOverlayIntent.putExtras(bundle);
-            overlayServiceHandler.startService(temporaryOverlayIntent);
+            overlayServiceHandler.startService(context, temporaryOverlayIntent);
         }
     }
 
     /** Stops the overlay service */
-    private void stopOverlayService(OverlayServiceHandler overlayServiceHandler, AlarmManager alarmManager) {
-        cancelPendingOverlayIntents(alarmManager);
+    private void stopOverlayService(Context context) {
+        cancelPendingOverlayIntents(context);
 
         if(overlayIntent != null) {
-            overlayServiceHandler.stopService(overlayIntent);
+            overlayServiceHandler.stopService(context, overlayIntent);
         }
 
-        isOverlayServiceActive = false;
+        overlayServiceHandler.setOverlayServiceActive(false);
     }
 
     /** If we have a pending overlay intent already, cancel it */
-    private void cancelPendingOverlayIntents(AlarmManager alarmManager) {
+    private void cancelPendingOverlayIntents(Context context) {
         if(pendingOverlayIntent != null) {
-            alarmManager.cancel(pendingOverlayIntent);
+            ((AlarmManager) context.getSystemService(Context.ALARM_SERVICE))
+                    .cancel(pendingOverlayIntent);
         }
     }
 
@@ -350,7 +349,7 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
                         }
 
                         if(isViewAttached()) {
-                            getView().showSnackBar("LocationUpdated");
+                            getView().showSnackBar("Location Updated");
                         }
 
                     } catch (ParseException e) {
@@ -364,14 +363,11 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
 
             @Override
             public void onFailure(Throwable t) {
-                System.err.println("Error: Failed to request sunrise and sunset data.\n" + t.toString());
-
-
-            }
+                System.err.println("Error: Failed to request sunrise and sunset data.\n" + t.toString());}
         });
     }
 
-    public void onActivityResult(PermissionHandler permissionHandler, int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(Context context, int requestCode, int resultCode, Intent data) {
         if (requestCode == Constants.OVERLAY_PERMISSION_REQUEST_CODE) {
             if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
@@ -379,7 +375,7 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
                  * The user has denied the permission request.
                  * Display an alert dialog informing them of their consequences.
                  */
-                if (!permissionHandler.hasDrawOverlayPermission()) {
+                if (!permissionHandler.hasDrawOverlayPermission(context)) {
                     if(isViewAttached()) {
                         getView().showErrorDialog();
                     }
@@ -393,7 +389,7 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         // Save our data when lifecycle is ending
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
-        editor.putBoolean("isOverlayServiceActive", isOverlayServiceActive);
+        editor.putBoolean("isOverlayServiceActive", overlayServiceHandler.isOverlayServiceActive());
         editor.putBoolean("hasDummyData", hasDummyData);
         editor.putInt("seekBarNightColorProgress", nightColorProgress);
         editor.putInt("seekBarNightBrightnessProgress", nightBrightnessProgress);

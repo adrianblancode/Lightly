@@ -15,10 +15,7 @@ import java.security.Permission;
  */
 public class PermissionHandler {
 
-    private Context context;
-
-    public PermissionHandler(Context context) {
-        this.context = context;
+    public PermissionHandler() {
     }
 
     /**
@@ -27,7 +24,7 @@ public class PermissionHandler {
      * In Marshmallow or higher this has to be done programatically at runtime, however for earlier
      * versions they are accepted on install. Can only be false if on Marshmallow or higher.
      */
-    public boolean hasDrawOverlayPermission() {
+    public boolean hasDrawOverlayPermission(Context context) {
         if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return Settings.canDrawOverlays(context.getApplicationContext());
         } else {
@@ -42,7 +39,7 @@ public class PermissionHandler {
      * Will only run if we do not already have the permission, AND if we are running on
      * Marshmallow or higher.
      */
-    public Intent getDrawOverlayPermissionIntent() {
+    public Intent getDrawOverlayPermissionIntent(Context context) {
         if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(context)) {
 

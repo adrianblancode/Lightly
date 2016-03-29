@@ -11,26 +11,24 @@ import co.adrianblan.lightly.helpers.Constants;
  */
 public class OverlayServiceHandler {
 
-    private Context context;
     private boolean isOverlayServiceActive;
 
-    public OverlayServiceHandler(Context context) {
-        this.context = context;
+    public OverlayServiceHandler() {
     }
 
-    public void startService(Intent intent) {
+    public void startService(Context context, Intent intent) {
         context.startService(intent);
     }
 
-    public void stopService(Intent intent) {
+    public void stopService(Context context, Intent intent) {
         context.stopService(intent);
     }
 
-    public Intent getNewOverlayService() {
+    public Intent getNewOverlayService(Context context) {
         return new Intent(context, OverlayService.class);
     }
 
-    public PendingIntent getPendingIntent(Intent intent) {
+    public PendingIntent getPendingIntent(Context context, Intent intent) {
         return PendingIntent.getService(context, Constants.SERVICE_OVERLAY_REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }

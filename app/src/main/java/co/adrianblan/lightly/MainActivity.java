@@ -92,9 +92,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     @BindDrawable(R.drawable.ic_brightness_low_white_24dp)
     Drawable brightnessLowDrawable;
 
-    OverlayServiceHandler overlayServiceHandler;
-    PermissionHandler permissionHandler;
-    AlarmManager alarmManager;
 
     @NonNull
     @Override // Called internally by Mosby
@@ -108,9 +105,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        overlayServiceHandler = new OverlayServiceHandler(this);
-        permissionHandler = new PermissionHandler(this);
-        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         // Add sun drawables that the SunCycle will draw over the cycle
         ArrayList<Drawable> sunDrawables = new ArrayList<>();
@@ -121,27 +115,26 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         sunCycleView.setSunDrawables(sunDrawables);
 
         if(!presenter.isInitialized()) {
-            presenter.initialize(this, overlayServiceHandler, alarmManager,
-                    PreferenceManager.getDefaultSharedPreferences(this), permissionHandler);
+            presenter.initialize(this);
         }
 
         // Seekbar listener
         SeekBar.OnSeekBarChangeListener seekBarNightColorChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
-                presenter.nightColorChanged(progress, overlayServiceHandler, permissionHandler);
+                presenter.nightColorChanged(MainActivity.this, progress);
             }
 
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {presenter.nightColorStartTouch(overlayServiceHandler, permissionHandler);}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {presenter.nightColorStopTouch(overlayServiceHandler, alarmManager, permissionHandler);}
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {presenter.nightColorStartTouch(MainActivity.this);}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {presenter.nightColorStopTouch(MainActivity.this);}
         };
 
         SeekBar.OnSeekBarChangeListener seekBarNightBrightnessChangeListener = new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
-                presenter.nightBrightnessChanged(progress, overlayServiceHandler, permissionHandler);
+                presenter.nightBrightnessChanged(MainActivity.this, progress);
             }
 
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {presenter.nightBrightnessStartTouch(overlayServiceHandler, permissionHandler);}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {presenter.nightBrightnessStopTouch(overlayServiceHandler, alarmManager, permissionHandler);}
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {presenter.nightBrightnessStartTouch(MainActivity.this);}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {presenter.nightBrightnessStopTouch(MainActivity.this);}
         };
 
         seekBarNightColor.setOnSeekBarChangeListener(seekBarNightColorChangeListener);
@@ -152,6 +145,12 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
     protected void onStart() {
         super.onStart();
         presenter.onStart();
+    }
+
+    /** When the user checks the enabled switch, we toggle the overlay */
+    @OnCheckedChanged(R.id.switch_enabled)
+    public void onCheckedChanged(boolean isChecked) {
+        presenter.switchEnabled(this, isChecked);
     }
 
     @Override
@@ -215,21 +214,14 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter> implement
         presenter.requestLocationData();
     }
 
-    /** When the user checks the enabled switch, we toggle the overlay */
-    @OnCheckedChanged(R.id.switch_enabled)
-    public void onCheckedChanged(boolean isChecked) {
-        presenter.switchEnabled(isChecked, overlayServiceHandler, alarmManager, permissionHandler);
-    }
-
     @Override
     public void startActivity(Intent intent, int code){
-        startActivityForResult(permissionHandler.getDrawOverlayPermissionIntent(),
-                Constants.OVERLAY_PERMISSION_REQUEST_CODE);
+        startActivityForResult(intent, Constants.OVERLAY_PERMISSION_REQUEST_CODE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        presenter.onActivityResult(permissionHandler, requestCode, resultCode, data);
+        presenter.onActivityResult(this, requestCode, resultCode, data);
     }
 
     @Override
