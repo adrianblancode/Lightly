@@ -27,9 +27,10 @@ android {
 buildscript {
     repositories {
         mavenCentral()
+        jcenter();
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-alpha3'
+        classpath 'com.android.tools.build:gradle:2.0.0-beta7'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     }
 }
