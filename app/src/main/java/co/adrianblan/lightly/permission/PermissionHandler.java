@@ -1,4 +1,4 @@
-package co.adrianblan.lightly.helpers;
+package co.adrianblan.lightly.permission;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,10 +8,15 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 
+import java.security.Permission;
+
 /**
  * Handles checking for permissions, and requesting permissions.
  */
 public class PermissionHandler {
+
+    public PermissionHandler() {
+    }
 
     /**
      * Returns whether we have the permission to draw overlays.
